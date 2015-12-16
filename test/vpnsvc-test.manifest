@@ -1,0 +1,24 @@
+<manifest>
+	<define>
+		<domain name="vpnsvc_test"/>
+		<permit>
+			<smack permit="sdbd" type="rwxat"/>
+			<smack permit="dbus" type="rw"/>
+		</permit>
+		<request>
+			<smack request="vpnsvc::tun" type="rw"/>
+			<smack request="vpnsvc::protect" type="rw"/>
+			<smack request="vpnsvc::interface" type="rw"/>
+			<smack request="vpnsvc::block_networks" type="rw"/>
+			<smack request="device::app_logging" type="w"/>
+			<smack request="device::sys_logging" type="w"/>
+			<smack request="sdbd" type="rwxat"/>
+		</request>
+	</define>
+	<assign>
+		<filesystem path="/usr/sbin/vpnsvc-test" label="vpnsvc_test" exec_label="vpnsvc_test"/>
+	</assign>
+	<request>
+		<domain name="vpnsvc_test"/>
+	</request>
+</manifest>

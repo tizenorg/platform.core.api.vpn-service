@@ -1,0 +1,41 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+SET(PACKAGE_NAME vpnsvc-test)
+SET(LIB_NAME ${PACKAGE_NAME})
+PROJECT(${LIB_NAME})
+SET(PREFIX ${CMAKE_INSTALL_PREFIX})
+SET(EXEC_PREFIX "\${prefix}")
+SET(LIBDIR "\${prefix}/lib")
+SET(INCLUDEDIR "\${prefix}/include")
+SET(VERSION 0.1)
+
+SET(TEST_ROOT "${CMAKE_SOURCE_DIR}/test")
+
+SET(requires "dlog dbus-glib-1 capi-base-common capi-appfw-application")
+SET(pc_requires "capi-base-common")
+
+SET(TEST_SRCS
+	vpn_service_test.c)
+
+
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include
+					${CMAKE_SOURCE_DIR}/framework/include)
+
+INCLUDE(FindPkgConfig)
+pkg_check_modules(${PACKAGE_NAME} REQUIRED ${requires})
+FOREACH(flag ${${PACKAGE_NAME}_CFLAGS})
+	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
+ENDFOREACH(flag)
+
+# Compiler flags
+SET(EXTRA_C_FLAGS "${EXTRA_CFLAGS} -fPIC -Wall -fvisibility=hidden")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_C_FLAGS}")
+SET(CMAKE_C_FLAGS_DEBUG "-O0 -g")
+
+ADD_DEFINITIONS("-DSLP_DEBUG")
+
+SET(CMAKE_EXE_LINKER_FLAGS "-Wl,--as-needed -Wl,--rpath=/usr/lib")
+
+ADD_EXECUTABLE(${PACKAGE_NAME} ${TEST_SRCS})
+TARGET_LINK_LIBRARIES(${PACKAGE_NAME} ${${PACKAGE_NAME}_LDFLAGS} "-ldl" capi-vpnsvc)
+
+INSTALL(TARGETS ${PACKAGE_NAME} DESTINATION sbin)
