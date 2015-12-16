@@ -1,0 +1,65 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+SET(PACKAGE_NAME capi-vpnsvc)
+SET(LIB_NAME ${PACKAGE_NAME})
+PROJECT(${LIB_NAME})
+SET(PREFIX ${CMAKE_INSTALL_PREFIX})
+SET(EXEC_PREFIX "\${prefix}")
+SET(LIBDIR "\${prefix}/lib")
+SET(INCLUDEDIR "\${prefix}/include")
+SET(VERSION 0.1)
+
+SET(requires "dlog dbus-1 glib-2.0 gio-2.0 gio-unix-2.0 capi-base-common capi-appfw-application capi-appfw-app-manager capi-system-info")
+SET(pc_requires "capi-base-common")
+
+SET(SRCS
+	src/capi_vpn_service.c
+)
+
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include
+					${CMAKE_SOURCE_DIR}/framework/include)
+
+INCLUDE(FindPkgConfig)
+pkg_check_modules(${PACKAGE_NAME} REQUIRED ${requires})
+FOREACH(flag ${${PACKAGE_NAME}_CFLAGS})
+	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
+ENDFOREACH(flag)
+
+# Compiler flags
+SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} -fPIC -Wall -fvisibility=hidden")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_CFLAGS}")
+SET(CMAKE_C_FLAGS_DEBUG "-O0 -g")
+
+ADD_DEFINITIONS("-DPREFIX=\"${PREFIX}\"")
+ADD_DEFINITIONS("-DFACTORYFS=\"$ENV{FACTORYFS}\"")
+ADD_DEFINITIONS("-DDATAFS=\"$ENV{DATADIR}\"")
+ADD_DEFINITIONS("-DSLP_DEBUG")
+
+SET(CMAKE_EXE_LINKER_FLAGS "-Wl,--as-needed -Wl,--rpath=/usr/lib")
+
+ADD_LIBRARY(${PACKAGE_NAME} SHARED ${SRCS})
+TARGET_LINK_LIBRARIES(${PACKAGE_NAME} ${${PACKAGE_NAME}_LDFLAGS} -lrt -ldl)
+
+INSTALL(TARGETS ${PACKAGE_NAME} DESTINATION lib)
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/vpn_service.h DESTINATION include)
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/tizen_vpn_error.h DESTINATION include)
+
+SET_TARGET_PROPERTIES(${PACKAGE_NAME}
+      PROPERTIES
+      VERSION ${FULLVER}
+      SOVERSION ${MAJORVER}
+      CLEAN_DIRECT_OUTPUT 1
+)
+
+
+SET(PC_NAME ${PACKAGE_NAME})
+SET(PC_REQUIRED ${pc_requires})
+SET(PC_CFLAGS -I\${includedir})
+SET(PC_LDFLAGS -l${PACKAGE_NAME})
+
+CONFIGURE_FILE(
+    ${PACKAGE_NAME}.pc.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/${PACKAGE_NAME}.pc
+    @ONLY
+)
+
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${PACKAGE_NAME}.pc DESTINATION lib/pkgconfig)
