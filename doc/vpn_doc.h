@@ -24,15 +24,15 @@
 
 /**
  * @defgroup CAPI_NETWORK_VPN_MODULE VPN
- * @brief The VPN API provides functions for managing VPN.
+ * @brief The Virtual Private Network (VPN) API provides functions for managing VPN.
  * @ingroup CAPI_NETWORK_FRAMEWORK
  *
  * @section CAPI_NETWORK_VPN_MODULE_HEADER Required Header
- *   \#include <vpn_service_product.h>
+ *   \#include <vpn_service.h>
  *
  * @section CAPI_NETWORK_VPN_MODULE_OVERVIEW Overview
  * VPN allows your application to manage VPN features.
- * The VPN Service enables your application to init and deinit a VPN device(tun interface),
+ * The VPN Service enables your application to init and deinit a VPN device(TUN(namely netowrk TUNel) interface),
  * Routing management, DNS management and Firewall management.
  */
 
@@ -42,7 +42,7 @@
  * @ingroup CAPI_NETWORK_VPN_MODULE
  *
  * @section CAPI_NETWORK_VPN_SERVICE_MODULE_HEADER Required Header
- *   \#include <vpn_service_product.h>
+ *   \#include <vpn_service.h>
  *
  * @section CAPI_NETWORK_VPN_SERVICE_MODULE_OVERVEW Overview
  * The VPN Service functions for managing VPN.
@@ -53,7 +53,7 @@
  *	- Firewall management
  * @section CAPI_NETWORK_VPN_SERVICE_MODULE_FEATURE Related Features
  * This API is related with the following features:\n
- * - http://developer.samsung.com/tizen/feature/network.vpn\n
+ * - http://tizen.org/feature/network.vpn\n
  *
  * It is recommended to design feature related codes in your application for reliability.\n
  * You can check if a device supports the related features for this API by using @ref CAPI_SYSTEM_SYSTEM_INFO_MODULE, thereby controlling the procedure of your application.\n
