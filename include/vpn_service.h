@@ -45,6 +45,11 @@
 extern "C" {
 #endif // __cplusplus
 
+#ifdef LOG_TAG
+#undef LOG_TAG
+#endif
+#define LOG_TAG "CAPI_VPNSVC"
+
 #ifndef API
 #define API __attribute__ ((visibility("default")))
 #endif
@@ -67,6 +72,9 @@ extern "C" {
   */
 #define VPNSVC_SESSION_STRING_LEN 32
 
+#ifndef TIZEN_ERROR_VPNSVC
+#define TIZEN_ERROR_VPNSVC -0x03200000
+#endif
 
 /**
   * @brief   Enumeration for VPN service error types
@@ -88,26 +96,13 @@ typedef enum
 
 
 /**
-  * @brief   The structure containing the route information
-  * @details This structure can be used for both vpnsvc_up() and vpnsvc_block_networks() functions.
-  * @since_tizen 3.0
-  * @see vpnsvc_up()
-  * @see vpnsvc_block_networks()
-  */
-struct vpnsvc_route {
-    char dest[VPNSVC_IP4_STRING_LEN];   /**< Destination address of the route */
-    int prefix;                         /**< The prefix of route */
-};
-
-/**
   * @brief   The VPN tun interface handle
-  * @details This handle can be obtained by calling vpnsvc_init() and destroyed() by calling vpnsvc_deinit().
+  * @details This handle can be obtained by calling vpnsvc_init() and destroyed by calling vpnsvc_deinit().
   * @since_tizen 3.0
   * @see vpnsvc_init()
   * @see vpnsvc_deinit()
   */
 typedef void* vpnsvc_tun_h;
-
 
 /**
  * @brief  Initializes TUN interface
@@ -172,7 +167,8 @@ API int vpnsvc_protect(vpnsvc_tun_h handle, int socket_fd, const char* dev_name)
  * @param[in] handle         The VPN tun interface handle
  * @param[in] local_ip       The local IP address
  * @param[in] remote_ip      The remote IP address
- * @param[in] routes         The list of routes for applying to routing table (see vpnsvc_route struct) - Optional
+ * @param[in] dest           Destination address of the route
+ * @param[in] prefix         The prefix of route
  * @param[in] nr_routes      The number of routes - Optional
  * @param[in] dns_servers    The list of DNS server names - Optional
  * @param[in] nr_dns_servers The number of DNS server names - Optional
@@ -184,12 +180,11 @@ API int vpnsvc_protect(vpnsvc_tun_h handle, int socket_fd, const char* dev_name)
  * @retval #VPNSVC_ERROR_NOT_SUPPORTED         Not Supported
  * @pre The VPN tun interface should be initialized already.
  * @post If you want to set interface down, please call vpnsvc_down().
- * @see #vpnsvc_route
  * @see vpnsvc_init()
  * @see vpnsvc_down()
  */
 API int vpnsvc_up(vpnsvc_tun_h handle, const char* local_ip, const char* remote_ip,
-				const struct vpnsvc_route* routes, size_t nr_routes,
+				const char *dest[], int prefix[], size_t nr_routes,
 				const char** dns_servers, size_t nr_dns_servers,
 				const char* dns_suffix);
 
@@ -247,9 +242,11 @@ API int vpnsvc_write(vpnsvc_tun_h handle, const char* data, size_t size);
  * @brief Blocks all traffics except specified allowing networks
  * @since_tizen 3.0
  * @param[in] handle                  The VPN tun interface handle
- * @param[in] allow_routes_vpn        The list of allowing networks over VPN interface (Please see vpnsvc_route structure).
+ * @param[in] dest_vpn        	      Allowing networks over VPN interface.
+ * @param[in] prefix_vpn	      The prefix of VPN interface
  * @param[in] nr_allow_routes_vpn     The number of allowing networks over VPN interface
- * @param[in] allow_routes_orig       The list of allowing networks over the original interface (Please see vpnsvc_route structure).
+ * @param[in] dest_orig       	      Allowing networks over the original interface.
+ * @param[in] prefix_orig	      The prefix of Original interface.
  * @param[in] nr_allow_routes_orig    The number of allowing networks over the original interface
  * @return 0 on success. otherwise, a negative error value.
  * @retval #VPNSVC_ERROR_NONE                  Success
@@ -259,9 +256,11 @@ API int vpnsvc_write(vpnsvc_tun_h handle, const char* data, size_t size);
  * @see vpnsvc_unblock_networks()
  */
 API int vpnsvc_block_networks(vpnsvc_tun_h handle,
-		const struct vpnsvc_route* allow_routes_vpn,
+		const char *dest_vpn[],
+		int prefix_vpn[],
 		size_t nr_allow_routes_vpn,
-		const struct vpnsvc_route* allow_routes_orig,
+		const char *dest_orig[],
+		int prefix_orig[],
 		size_t nr_allow_routes_orig);
 
 /**
@@ -279,17 +278,19 @@ API int vpnsvc_unblock_networks(vpnsvc_tun_h handle);
  * @brief Gets the fd of the VPN tun interface
  * @since_tizen 3.0
  * @param[in] handle The VPN tun interface handle
+ * @param[out] tun_index The tun fd
  * @return The fd value of VPN tun interface. Otherwise, a negative error value.
  * @retval #VPNSVC_ERROR_NONE                  Success
  * @retval #VPNSVC_ERROR_INVALID_PARAMETER     Invalid parameter
  * @retval #VPNSVC_ERROR_NOT_SUPPORTED         Not Supported
  */
-API int vpnsvc_get_tun_fd(vpnsvc_tun_h handle);
+API int vpnsvc_get_tun_fd(vpnsvc_tun_h handle, int* tun_fd);
 
 /**
  * @brief Gets the index of VPN tun interface
  * @since_tizen 3.0
  * @param[in] handle The VPN tun interface handle
+ * @param[out] tun_index The tun index
  * @return The index of the VPN tun interface. otherwise, a negative error value.
  * @retval #VPNSVC_ERROR_NONE                  Success
  * @retval #VPNSVC_ERROR_INVALID_PARAMETER     Invalid parameter
@@ -297,7 +298,7 @@ API int vpnsvc_get_tun_fd(vpnsvc_tun_h handle);
  * @pre Before calling this function, VPN tun interface should be initialized already.
  * @see vpnsvc_init()
  */
-API int vpnsvc_get_tun_index(vpnsvc_tun_h handle);
+API int vpnsvc_get_tun_index(vpnsvc_tun_h handle, int* tun_index);
 
 /**
  * @brief Gets the name of VPN tun interface
@@ -356,7 +357,7 @@ API int vpnsvc_set_blocking(vpnsvc_tun_h handle, bool blocking);
  * @pre Before calling this function, VPN tun interface should be initialized already.
  * @see vpnsvc_init()
  */
-API int vpnsvc_set_session(vpnsvc_tun_h handle, const char* session_name);
+API int vpnsvc_set_session(vpnsvc_tun_h handle, const char* session);
 
 /**
  * @brief Gets the session name for the VPN
@@ -370,7 +371,7 @@ API int vpnsvc_set_session(vpnsvc_tun_h handle, const char* session_name);
  * @pre Before calling this function, VPN tun interface should be initialized already.
  * @see vpnsvc_init()
  */
-API int vpnsvc_get_session(vpnsvc_tun_h handle, char* session_name);
+API int vpnsvc_get_session(vpnsvc_tun_h handle, char* session);
 
 #ifdef __cplusplus
 }
