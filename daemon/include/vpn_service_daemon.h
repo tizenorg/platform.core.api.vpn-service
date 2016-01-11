@@ -27,12 +27,12 @@ int vpn_daemon_init(const char* tun_name, size_t tun_name_len, int fd, vpnsvc_tu
 int vpn_daemon_deinit(const char* dev_name);
 int vpn_daemon_protect(int socket, const char* dev_name);
 int vpn_daemon_up(int tun_index, const char* local_ip, const char* remote_ip,
-					const struct vpnsvc_route* routes, size_t nr_routes,
-					char** dns_servers, size_t nr_dns, size_t total_dns_string_cnt,
-					const char* dns_suffix, const unsigned int mtu);
+						const char** routes, int prefix[], size_t nr_routes,
+						char** dns_servers, size_t nr_dns, size_t total_dns_string_cnt,
+						const char* dns_suffix, const unsigned int mtu);
 int vpn_daemon_down(int tun_index);
-int vpn_daemon_block_networks(const struct vpnsvc_route* nets_vpn, size_t nr_nets_vpn,
-		const struct vpnsvc_route* nets_orig, size_t nr_nets_orig);
+int vpn_daemon_block_networks(const char** nets_vpn, int prefix_vpn[], size_t nr_nets_vpn,
+		const char** nets_orig, int prefix_orig[], size_t nr_nets_orig);
 int vpn_daemon_unblock_networks(void);
 
 #endif /* __TIZEN_CAPI_VPN_SERVICE_DAEMON_H__ */

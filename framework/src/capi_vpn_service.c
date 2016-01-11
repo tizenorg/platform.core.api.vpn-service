@@ -418,9 +418,9 @@ int vpnsvc_protect(vpnsvc_tun_h handle, int socket_fd, const char* dev_name)
 }
 
 int vpnsvc_up(vpnsvc_tun_h handle, const char* local_ip, const char* remote_ip,
-					const struct vpnsvc_route* routes, size_t nr_routes,
-					const char** dns_servers, size_t nr_dns_servers,
-					const char* dns_suffix)
+				const char **dest, int prefix[], size_t nr_routes,
+				const char** dns_servers, size_t nr_dns_servers,
+				const char* dns_suffix)
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
 
@@ -460,13 +460,13 @@ int vpnsvc_up(vpnsvc_tun_h handle, const char* local_ip, const char* remote_ip,
 	/* make a route parameter */
 	g_variant_builder_init(&route_builder, G_VARIANT_TYPE("a{si}"));
 	for (i = 0 ; i < nr_routes ; i++) {
-		if (strlen(routes[i].dest) <= 0) {
-			LOGE("invalid routes[%d].dest", i);
+		if (strlen(dest[i]) <= 0) {
+			LOGE("invalid dest[%d]", i);
 			return VPNSVC_ERROR_INVALID_PARAMETER;
 		}
-		g_variant_builder_add(&route_builder, "{si}", routes[i].dest, routes[i].prefix);
-		LOGD("routes[%d].dest : %s", i, routes[i].dest);
-		LOGD("routes[%d].prefix : %d", i,  routes[i].prefix);
+		g_variant_builder_add(&route_builder, "{si}", dest[i], prefix[i]);
+		LOGD("dest[%d] : %s", i, dest[i]);
+		LOGD("prefix[i] : %d", i,  prefix[i]);
 	}
 	route_param = g_variant_builder_end(&route_builder);
 
@@ -621,11 +621,15 @@ int vpnsvc_write(vpnsvc_tun_h handle, const char* data, size_t size)
 	return write(tun_s->fd, data, size);
 }
 
-API int vpnsvc_block_networks(vpnsvc_tun_h handle,
-									const struct vpnsvc_route* allow_routes_vpn,
-									size_t nr_allow_routes_vpn,
-									const struct vpnsvc_route* allow_routes_orig,
-									size_t nr_allow_routes_orig)
+
+int vpnsvc_block_networks(vpnsvc_tun_h handle,
+		const char **dest_vpn,
+		int prefix_vpn[], 
+		size_t nr_allow_routes_vpn,
+		const char **dest_orig,
+		int prefix_orig[], 
+		size_t nr_allow_routes_orig)
+
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
 
@@ -653,18 +657,18 @@ API int vpnsvc_block_networks(vpnsvc_tun_h handle,
 	/* make a route parameter for allowed VPN interface routes */
 	g_variant_builder_init(&nets_builder, G_VARIANT_TYPE("a{si}"));
 	for (i = 0 ; i < nr_allow_routes_vpn ; i++) {
-		g_variant_builder_add(&nets_builder, "{si}", allow_routes_vpn[i].dest, allow_routes_vpn[i].prefix);
-		LOGD("routes[%d].dest : %s", i, allow_routes_vpn[i].dest);
-		LOGD("routes[%d].prefix : %d", i,  allow_routes_vpn[i].prefix);
+		g_variant_builder_add(&nets_builder, "{si}", dest_vpn[i], prefix_vpn[i]);
+		LOGD("routes[%d].dest : %s", i, dest_vpn[i]);
+		LOGD("routes[%d].prefix : %d", i,  prefix_vpn[i]);
 	}
 	nets_param_vpn = g_variant_builder_end(&nets_builder);
 
 	/* make a route parameter for allowed Original interface Routes */
 	g_variant_builder_init(&nets_builder, G_VARIANT_TYPE("a{si}"));
 	for (i = 0 ; i < nr_allow_routes_orig ; i++) {
-		g_variant_builder_add(&nets_builder, "{si}", allow_routes_orig[i].dest, allow_routes_orig[i].prefix);
-		LOGD("routes[%d].dest : %s", i, allow_routes_orig[i].dest);
-		LOGD("routes[%d].prefix : %d", i,  allow_routes_orig[i].prefix);
+		g_variant_builder_add(&nets_builder, "{si}", dest_orig[i], prefix_orig[i]);
+		LOGD("routes[%d].dest : %s", i, dest_orig[i]);
+		LOGD("routes[%d].prefix : %d", i,  prefix_orig[i]);
 	}
 	nets_param_orig = g_variant_builder_end(&nets_builder);
 
