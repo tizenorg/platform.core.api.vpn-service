@@ -44,6 +44,7 @@ int test_vpnsvc_init()
 {
 	char *name = TEST_VPN_IF_NAME;
 	int ret = VPNSVC_ERROR_NONE;
+	int int_value;
 
 	printf("test vpnsvc_init\n");
 
@@ -52,12 +53,20 @@ int test_vpnsvc_init()
 	if (ret != VPNSVC_ERROR_NONE) {
 		printf("vpnsvc_init failed : %d\n", ret);
 	} else {
-		char result_name[VPNSVC_TUN_IF_NAME_LEN] = {0, };
+		char* result_name = NULL;
 		printf("vpnsvc_init Succeed : %d\n", ret);
 
-		printf("tun_fd : %d\n", vpnsvc_get_tun_fd(handle));
-		printf("tun_index : %d\n", vpnsvc_get_tun_index(handle));
-		ret = vpnsvc_get_tun_name(handle, result_name);
+		if (vpnsvc_get_tun_fd(handle, &int_value) == VPNSVC_ERROR_NONE)
+			printf("tun_fd : %d\n", int_value);
+		else
+			printf("Fail to get tun_fd\n");
+
+		if (vpnsvc_get_tun_index(handle, &int_value) == VPNSVC_ERROR_NONE)
+			printf("tun_index : %d\n", int_value);
+		else
+			printf("Fail to get tun_index\n");
+
+		ret = vpnsvc_get_tun_name(handle, &result_name);
 		if (ret == VPNSVC_ERROR_NONE)
 			printf("tun_name : %s\n", result_name);
 	}
@@ -110,7 +119,8 @@ int test_vpnsvc_up()
 	int ret;
 	char local[VPNSVC_IP4_STRING_LEN] = {'\0',};
 	char remote[VPNSVC_IP4_STRING_LEN] = {'\0',};
-	struct vpnsvc_route routes[2];
+	char *routes[2];
+	int prefix[2];
 	int nr_routes = 2;
 	const char *dns_server[2];
 	int nr_dns = 2;
@@ -124,11 +134,17 @@ int test_vpnsvc_up()
 	strncpy(local, "192.168.0.82", VPNSVC_IP4_STRING_LEN);
 	strncpy(remote, "192.168.0.1", VPNSVC_IP4_STRING_LEN);
 
-	memset(routes, 0, sizeof(routes));
-	strncpy(routes[0].dest, "192.168.0.10", VPNSVC_IP4_STRING_LEN);
-	routes[0].prefix = 32;
-	strncpy(routes[1].dest, "192.168.0.11", VPNSVC_IP4_STRING_LEN);
-	routes[1].prefix = 32;
+	routes[0] = malloc(sizeof(char) * VPNSVC_IP4_STRING_LEN);
+	routes[1] = malloc(sizeof(char) * VPNSVC_IP4_STRING_LEN);
+
+	memset(routes[0], 0, sizeof(char) * VPNSVC_IP4_STRING_LEN);
+	memset(routes[1], 0, sizeof(char) * VPNSVC_IP4_STRING_LEN);
+
+	strncpy(routes[0], "192.168.0.10", VPNSVC_IP4_STRING_LEN);
+	prefix[0] = 32;
+
+	strncpy(routes[1], "192.168.0.11", VPNSVC_IP4_STRING_LEN);
+	prefix[1] = 32;
 
 	char *dns1 = "1.1.1.1";
 	char *dns2 = "2.2.2.2";
@@ -136,7 +152,7 @@ int test_vpnsvc_up()
 	dns_server[0] = dns1;
 	dns_server[1] = dns2;
 
-	ret = vpnsvc_up(handle, local, remote, routes, nr_routes, dns_server, nr_dns, dns_suffix);
+	ret = vpnsvc_up(handle, local, remote, routes, prefix, nr_routes, dns_server, nr_dns, dns_suffix);
 	if (ret != VPNSVC_ERROR_NONE)
 		printf("vpnsvc_up failed!\n");
 	else
@@ -177,9 +193,11 @@ int test_vpnsvc_write()
 
 int test_vpnsvc_block_networks()
 {
-	struct vpnsvc_route block_nets[2];
+	char* block_nets[2];
+	int block_prefix[2];
 	int block_nr_nets = 2;
-	struct vpnsvc_route allow_nets[2];
+	char* allow_nets[2];
+	int allow_prefix[2];
 	int allow_nr_nets = 2;
 	int ret;
 
@@ -188,19 +206,25 @@ int test_vpnsvc_block_networks()
 		return -1;
 	}
 
-	memset(block_nets, 0, sizeof(block_nets));
-	strncpy(block_nets[0].dest, "125.209.222.141", VPNSVC_IP4_STRING_LEN);
-	block_nets[0].prefix = 32;
-	strncpy(block_nets[1].dest, "180.70.134.19", VPNSVC_IP4_STRING_LEN);
-	block_nets[1].prefix = 32;
+	block_nets[0] = malloc(sizeof(char) * VPNSVC_IP4_STRING_LEN);
+	block_nets[1] = malloc(sizeof(char) * VPNSVC_IP4_STRING_LEN);
+	memset(block_nets[0], 0, sizeof(char) * VPNSVC_IP4_STRING_LEN);
+	memset(block_nets[1], 0, sizeof(char) * VPNSVC_IP4_STRING_LEN);
+	strncpy(block_nets[0], "125.209.222.141", VPNSVC_IP4_STRING_LEN);
+	block_prefix[0] = 32;
+	strncpy(block_nets[1], "180.70.134.19", VPNSVC_IP4_STRING_LEN);
+	block_prefix[1] = 32;
 
-	memset(allow_nets, 0, sizeof(allow_nets));
-	strncpy(allow_nets[0].dest, "216.58.221.142", VPNSVC_IP4_STRING_LEN); /* google.com */
-	allow_nets[0].prefix = 32;
-	strncpy(allow_nets[1].dest, "206.190.36.45", VPNSVC_IP4_STRING_LEN); /* yahoo.com */
-	allow_nets[1].prefix = 32;
+	allow_nets[0] = malloc(sizeof(char) * VPNSVC_IP4_STRING_LEN);
+	allow_nets[1] = malloc(sizeof(char) * VPNSVC_IP4_STRING_LEN);
+	memset(allow_nets[0], 0, sizeof(char) * VPNSVC_IP4_STRING_LEN);
+	memset(allow_nets[1], 0, sizeof(char) * VPNSVC_IP4_STRING_LEN);
+	strncpy(allow_nets[0], "216.58.221.142", VPNSVC_IP4_STRING_LEN);
+	allow_prefix[0] = 32;
+	strncpy(allow_nets[1], "206.190.36.45", VPNSVC_IP4_STRING_LEN);
+	allow_prefix[1] = 32;
 
-	ret = vpnsvc_block_networks(handle, block_nets, block_nr_nets, allow_nets, allow_nr_nets);
+	ret = vpnsvc_block_networks(handle, block_nets, block_prefix, block_nr_nets, allow_nets, allow_prefix, allow_nr_nets);
 
 	if (ret != VPNSVC_ERROR_NONE)
 		printf("vpnsvc_block_networks failed!\n");
@@ -266,14 +290,14 @@ int test_vpnsvc_set_session()
 {
 	int ret;
 	char *set_session = "vpnsvc_test VPN Session";
-	char get_session[VPNSVC_SESSION_STRING_LEN];
+	char *get_session = NULL;
 
 	ret = vpnsvc_set_session(handle, set_session);
 
 	if (ret != VPNSVC_ERROR_NONE) {
 		printf("vpnsvc_set_session failed!\n");
 	} else {
-		ret = vpnsvc_get_session(handle, get_session);
+		ret = vpnsvc_get_session(handle, &get_session);
 		printf("Session Name = %s\n", get_session);
 		printf("vpnsvc_set_session Succeed!\n");
 	}
