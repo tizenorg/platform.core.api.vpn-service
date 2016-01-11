@@ -132,7 +132,8 @@ gboolean handle_vpn_up(Vpnsvc *object,
 
 	LOGD("handle_vpn_up");
 
-	struct vpnsvc_route* routes = NULL;
+	char* routes[arg_nr_routes];
+	int prefix[arg_nr_routes];
 	char **dns_servers = NULL;
 
 	unsigned int i = 0;
@@ -157,20 +158,17 @@ gboolean handle_vpn_up(Vpnsvc *object,
 	if (arg_nr_routes > 0) {
 		if (arg_routes != NULL) {
 			GVariant *dict = g_variant_get_variant(arg_routes);
-			routes = (struct vpnsvc_route*)malloc(sizeof(struct vpnsvc_route)*arg_nr_routes);
-			if (routes == NULL) {
-				LOGE("malloc failed.");
-				result = VPNSVC_ERROR_OUT_OF_MEMORY;
-				goto done;
-			}
 			g_variant_iter_init(&iter, dict);
 			i = 0;
 			while (g_variant_iter_loop(&iter, "{si}", &route_dest, &route_prefix)) {
 				int temp_dest_str_len = strlen(route_dest);
-				strncpy(routes[i].dest, route_dest, temp_dest_str_len);
-				routes[i].dest[temp_dest_str_len] = '\0';
-				routes[i].prefix = route_prefix;
-				LOGD("routes[%d] : %s/%d", i, (routes[i].dest == NULL) ? "" : routes[i].dest, routes[i].prefix);
+				routes[i] = malloc((sizeof(char) * temp_dest_str_len)+1);
+				memset(routes[i], 0, sizeof(char) * temp_dest_str_len);
+				strncpy(routes[i], route_dest, temp_dest_str_len);
+				routes[i][temp_dest_str_len] = '\0';
+				prefix[i] = route_prefix;
+				LOGD("routes[%d] = %s \t", i, (routes[i] == NULL) ? "" : routes[i]);
+				LOGD("prefix[%d] = %d ", i, prefix[i]);
 				i++;
 			}
 		}
@@ -202,13 +200,10 @@ gboolean handle_vpn_up(Vpnsvc *object,
 	}
 
 	result = vpn_daemon_up(arg_tun_index, arg_local_ip, arg_remote_ip,
-			routes, arg_nr_routes, dns_servers, arg_nr_dns,
+			routes, prefix, arg_nr_routes, dns_servers, arg_nr_dns,
 			total_dns_string_cnt, arg_dns_suffix, arg_mtu);
 done:
 	/* free pointers */
-	if (routes)
-		free(routes);
-
 	if (dns_servers) {
 		for (i = 0; i < arg_nr_dns; i++) {
 			if (dns_servers[i])
@@ -248,8 +243,11 @@ gboolean handle_vpn_block_networks(Vpnsvc *object,
 	LOGD("handle_vpn_block_networks");
 	int result = VPNSVC_ERROR_NONE;
 
-	struct vpnsvc_route* nets_vpn = NULL;
-	struct vpnsvc_route* nets_orig = NULL;
+	char *nets_vpn[arg_nr_nets_vpn];
+	int prefix_vpn[arg_nr_nets_vpn];
+
+	char *nets_orig[arg_nr_nets_vpn];
+	int prefix_orig[arg_nr_nets_vpn];
 
 	int i = 0;
 	GVariantIter iter;
@@ -262,20 +260,16 @@ gboolean handle_vpn_block_networks(Vpnsvc *object,
 	if (arg_nr_nets_vpn > 0) {
 		if (arg_nets_vpn != NULL) {
 			GVariant *dict_nets_vpn = g_variant_get_variant(arg_nets_vpn);
-			nets_vpn = (struct vpnsvc_route*)malloc(sizeof(struct vpnsvc_route)*arg_nr_nets_vpn);
-			if (nets_vpn == NULL) {
-				LOGE("malloc failed.");
-				result = VPNSVC_ERROR_OUT_OF_MEMORY;
-				goto done;
-			}
 			g_variant_iter_init(&iter, dict_nets_vpn);
 			i = 0;
 			while (g_variant_iter_loop(&iter, "{si}", &route_dest, &route_prefix)) {
 				int tmp_route_len = strlen(route_dest);
-				strncpy(nets_vpn[i].dest, route_dest, tmp_route_len);
-				nets_vpn[i].dest[tmp_route_len] = '\0';
-				nets_vpn[i].prefix = route_prefix;
-				LOGD("nets_vpn[%d] : %s/%d", i, (nets_vpn[i].dest == NULL) ? "" : nets_vpn[i].dest, nets_vpn[i].prefix);
+				nets_vpn[i] = malloc(sizeof(char) * tmp_route_len + 1);
+				memset(nets_vpn[i], 0, sizeof(char) * tmp_route_len);
+				strncpy(nets_vpn[i], route_dest, tmp_route_len);
+				nets_vpn[i][tmp_route_len] = '\0';
+				prefix_vpn[i] = route_prefix;
+				LOGD("nets_vpn[%d] = %s prefix_vpn[%d] = %d", i,i, (nets_vpn[i] == NULL) ? "" : nets_vpn[i], prefix_vpn[i]);
 				i++;
 			}
 		}
@@ -285,34 +279,23 @@ gboolean handle_vpn_block_networks(Vpnsvc *object,
 	if (arg_nr_nets_orig > 0) {
 		if (arg_nets_orig != NULL) {
 			GVariant *dict_nets_orig = g_variant_get_variant(arg_nets_orig);
-			nets_orig = (struct vpnsvc_route*)malloc(sizeof(struct vpnsvc_route)*arg_nr_nets_orig);
-			if (nets_orig == NULL) {
-				LOGE("malloc failed.");
-				result = VPNSVC_ERROR_OUT_OF_MEMORY;
-				goto done;
-			}
 			g_variant_iter_init(&iter, dict_nets_orig);
 			i = 0;
 			while (g_variant_iter_loop(&iter, "{si}", &route_dest, &route_prefix)) {
 				int tmp_route_len = strlen(route_dest);
-				strncpy(nets_orig[i].dest, route_dest, tmp_route_len);
-				nets_orig[i].dest[tmp_route_len] = '\0';
-				nets_orig[i].prefix = route_prefix;
-				LOGD("nets_orig[%d] : %s/%d", i, (nets_orig[i].dest == NULL) ? "" : nets_orig[i].dest, nets_orig[i].prefix);
+				nets_orig[i] = malloc(sizeof(char) * tmp_route_len + 1);
+				memset(nets_orig[i], 0, sizeof(char) * tmp_route_len);
+				strncpy(nets_orig[i], route_dest, tmp_route_len);
+				nets_orig[i][tmp_route_len] = '\0';
+				prefix_orig[i] = route_prefix;
+				LOGD("nets_orig[%d] = %s prefix_orig[%d] = %d", i, i, (nets_orig[i] == NULL) ? "" : nets_orig[i], prefix_orig[i]);
 				i++;
 			}
 		}
 	}
 
 	/* call function */
-	result = vpn_daemon_block_networks(nets_vpn, arg_nr_nets_vpn, nets_orig, arg_nr_nets_orig);
-
-done:
-	if (nets_vpn)
-		free(nets_vpn);
-
-	if (nets_orig)
-		free(nets_orig);
+	result = vpn_daemon_block_networks(nets_vpn, prefix_vpn, arg_nr_nets_vpn, nets_orig, prefix_orig, arg_nr_nets_orig);
 
 	vpnsvc_complete_vpn_block_networks(object, invocation, result);
 

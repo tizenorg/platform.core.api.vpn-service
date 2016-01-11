@@ -27,6 +27,7 @@
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <sys/un.h>
+#include <stdio.h>
 
 #include "vpn_service_daemon.h"
 
@@ -81,7 +82,7 @@ static in_addr_t host2net(ipv4 host)
 	return net;
 }
 
-static int add_routes(char* if_name, const struct vpnsvc_route* routes, size_t nr_routes)
+static int add_routes(char* if_name, const char* routes[], int prefix[], size_t nr_routes)
 {
 	struct rtentry rt;
 	struct sockaddr_in addr;
@@ -102,7 +103,7 @@ static int add_routes(char* if_name, const struct vpnsvc_route* routes, size_t n
 
 		memset(&addr, 0, sizeof(addr));
 		addr.sin_family = AF_INET;
-		addr.sin_addr.s_addr = inet_addr(routes[i].dest);
+		addr.sin_addr.s_addr = inet_addr(routes[i]);
 		memcpy(&rt.rt_dst, &addr, sizeof(rt.rt_dst));
 
 		memset(&addr, 0, sizeof(addr));
@@ -114,7 +115,7 @@ static int add_routes(char* if_name, const struct vpnsvc_route* routes, size_t n
 		memset(&addr, 0, sizeof(addr));
 		addr.sin_family = AF_INET;
 		addr.sin_addr.s_addr = INADDR_ANY;
-		addr.sin_addr.s_addr = host2net(make_mask(routes[i].prefix));
+		addr.sin_addr.s_addr = host2net(make_mask(prefix[i]));
 		memcpy(&rt.rt_genmask, &addr, sizeof(rt.rt_genmask));
 
 		rt.rt_dev = if_name;
@@ -724,7 +725,7 @@ int vpn_daemon_protect(int socket_fd, const char* dev_name)
 }
 
 int vpn_daemon_up(int tun_index, const char* local_ip, const char* remote_ip,
-						const struct vpnsvc_route* routes, size_t nr_routes,
+						const char* routes[], int prefix[], size_t nr_routes,
 						char** dns_servers, size_t nr_dns, size_t total_dns_string_cnt,
 						const char* dns_suffix, const unsigned int mtu) {
 
@@ -816,7 +817,7 @@ int vpn_daemon_up(int tun_index, const char* local_ip, const char* remote_ip,
 
 	/* add routes */
 	if (nr_routes > 0) {
-		ret = add_routes(ifr_tun.ifr_name, routes, nr_routes);
+		ret = add_routes(ifr_tun.ifr_name, routes, prefix, nr_routes);
 		if (ret != VPNSVC_ERROR_NONE) {
 			LOGE("add_routes failed");
 			return ret;
@@ -903,21 +904,21 @@ int vpn_daemon_down(int tun_index)
 	return VPNSVC_ERROR_NONE;
 }
 
-int vpn_daemon_block_networks(const struct vpnsvc_route* nets_vpn, size_t nr_nets_vpn,
-		const struct vpnsvc_route* nets_orig, size_t nr_nets_orig) {
+int vpn_daemon_block_networks(const char* nets_vpn[], int prefix_vpn[], size_t nr_nets_vpn,
+		const char* nets_orig[], int prefix_orig[], size_t nr_nets_orig) {
 	unsigned int i;
 
 	/* iptable chain regist */
 	iptables_register();
 
 	for (i = 0; i < nr_nets_vpn; i++) {
-		LOGD("block[%d] ip/mask : %s/%d", i, nets_vpn[i].dest, nets_vpn[i].prefix);
-		iptables_add(nets_vpn[i].dest, nets_vpn[i].prefix);
+		LOGD("block[%d] ip/mask : %s/%d", i, nets_vpn[i], prefix_vpn[i]);
+		iptables_add(nets_vpn[i], prefix_vpn[i]);
 	}
 
 	for (i = 0; i < nr_nets_orig; i++) {
-		LOGD("allow[%d] ip/mask : %s/%d", i, nets_orig[i].dest, nets_orig[i].prefix);
-		iptables_add_orig(nets_orig[i].dest, nets_orig[i].prefix);
+		LOGD("allow[%d] ip/mask : %s/%d", i, nets_orig[i], prefix_orig[i]);
+		iptables_add_orig(nets_orig[i], prefix_orig[i]);
 	}
 
 	return VPNSVC_ERROR_NONE;
