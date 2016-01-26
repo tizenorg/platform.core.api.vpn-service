@@ -160,49 +160,6 @@ API int vpnsvc_deinit(vpnsvc_tun_h handle);
 API int vpnsvc_protect(vpnsvc_tun_h handle, int socket_fd, const char* dev_name);
 
 /**
- * @brief Sets-up TUN interface and brings it up. Installs specified routes/DNS servers/DNS suffix.
- * @since_tizen 3.0
- * @param[in] handle         The VPN tun interface handle
- * @param[in] local_ip       The local IP address
- * @param[in] remote_ip      The remote IP address
- * @param[in] dest           Destination address of the route
- * @param[in] prefix         The prefix of route
- * @param[in] nr_routes      The number of routes
- * @param[in] dns_servers    The list of DNS server names - Optional
- * @param[in] nr_dns_servers The number of DNS server names - Optionl
- * @param[in] dns_suffix     The DNS suffix - Optional
- * @return 0 on success. otherwise, a negative error value.
- * @retval #VPNSVC_ERROR_NONE                  Success
- * @retval #VPNSVC_ERROR_INVALID_PARAMETER     Invalid parameter
- * @retval #VPNSVC_ERROR_IPC_FAILED            Cannot connect to service daemon
- * @retval #VPNSVC_ERROR_NOT_SUPPORTED         Not Supported
- * @pre The VPN tun interface should be initialized already.
- * @post If you want to set interface down, please call vpnsvc_down().
- * @see vpnsvc_init()
- * @see vpnsvc_down()
- */
-API int vpnsvc_up(vpnsvc_tun_h handle, const char* local_ip, const char* remote_ip,
-				const char *dest[], int prefix[], size_t nr_routes,
-				const char** dns_servers, size_t nr_dns_servers,
-				const char* dns_suffix);
-
-/**
- * @brief Brings the TUN interface down and restores original DNS servers/domains.
- * @since_tizen 3.0
- * @param[in] handle The VPN tun interface handle
- * @return 0 on success. otherwise, a negative error value.
- * @retval #VPNSVC_ERROR_NONE                  Success
- * @retval #VPNSVC_ERROR_INVALID_PARAMETER     Invalid parameter
- * @retval #VPNSVC_ERROR_IPC_FAILED            Cannot connect to service daemon
- * @retval #VPNSVC_ERROR_NOT_SUPPORTED         Not Supported
- * @pre The VPN tun interface should be initialized already.
- * @post Please call vpnsvc_deinit() if you want to de-initialize VPN tun interface.
- * @see vpnsvc_up()
- * @see vpnsvc_deinit()
- */
-API int vpnsvc_down(vpnsvc_tun_h handle);
-
-/**
  * @brief Reads the data event on TUN descriptor.
  * @since_tizen 3.0
  * @param[in] handle      The VPN tun interface handle
