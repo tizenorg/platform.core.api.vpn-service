@@ -35,6 +35,7 @@
 #include <gio/gio.h>
 
 #include "vpn_service.h"
+#include "vpn_service_internal.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -69,7 +70,7 @@ typedef struct _vpnsvc_tun_s {
 	GDBusConnection *connection;            /**< D-Bus Connection */
 	int fd;                                 /**< tun socket fd */
 	int index;                              /**< tun index (if.if_index) */
-	char name[VPNSVC_TUN_IF_NAME_LEN];      /**< tun name (if.if_name) */
+	char name[VPNSVC_VPN_IF_NAME_LEN];      /**< tun name (if.if_name) */
 	char session[VPNSVC_SESSION_STRING_LEN];/**< session name (user setting) */
 	unsigned int mtu;                       /**< mtu (user setting) */
 } vpnsvc_tun_s;
