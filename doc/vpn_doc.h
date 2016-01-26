@@ -14,38 +14,24 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
-
 
 
 #ifndef __TIZEN_NETWORK_VPN_DOC_H__
 #define __TIZEN_NETWORK_VPN_DOC_H__
 
-/**
- * @defgroup CAPI_NETWORK_VPN_MODULE VPN
- * @brief The Virtual Private Network (VPN) API provides functions for managing VPN.
- * @ingroup CAPI_NETWORK_FRAMEWORK
- *
- * @section CAPI_NETWORK_VPN_MODULE_HEADER Required Header
- *   \#include <vpn_service.h>
- *
- * @section CAPI_NETWORK_VPN_MODULE_OVERVIEW Overview
- * VPN allows your application to manage VPN features.
- * The VPN Service enables your application to init and deinit a VPN device(TUN(namely netowrk TUNel) interface),
- * Routing management, DNS management and Firewall management.
- */
 
 /**
  * @defgroup CAPI_NETWORK_VPN_SERVICE_MODULE  VPN Service
- * @brief The VPN API provides functions for managing VPN.
- * @ingroup CAPI_NETWORK_VPN_MODULE
+ * @brief The Virtual Private Network (VPN) API provides functions for managing VPN.
+ * @ingroup CAPI_NETWORK_FRAMEWORK
  *
  * @section CAPI_NETWORK_VPN_SERVICE_MODULE_HEADER Required Header
  *   \#include <vpn_service.h>
  *
  * @section CAPI_NETWORK_VPN_SERVICE_MODULE_OVERVEW Overview
  * The VPN Service functions for managing VPN.
+ * There can be only one VPN connection running at the same time. The existing interface is deactivated when a new one is created.
  * Using the VPN Service, you can implement features that allow the users of your application to:
  *	- Initialize / Deinitialize the VPN device
  *	- Routing management
