@@ -24,6 +24,11 @@
 #include <system_info.h>
 #include <gio/gunixfdlist.h>
 
+#ifdef LOG_TAG
+#undef LOG_TAG
+#endif
+#define LOG_TAG "CAPI_VPNSVC"
+
 #define DBUS_REPLY_TIMEOUT (120 * 1000)
 
 GVariant *op = NULL;
@@ -217,7 +222,7 @@ GVariant *_vpnsvc_invoke_dbus_method_with_fd(GDBusConnection *connection,
 	return reply;
 }
 
-int vpnsvc_init(const char* tun_name, vpnsvc_tun_h *handle)
+EXPORT_API int vpnsvc_init(const char* tun_name, vpnsvc_h *handle)
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
 
@@ -322,7 +327,7 @@ int vpnsvc_init(const char* tun_name, vpnsvc_tun_h *handle)
 	return result;
 }
 
-int vpnsvc_deinit(vpnsvc_tun_h handle)
+EXPORT_API int vpnsvc_deinit(vpnsvc_h handle)
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
 
@@ -371,7 +376,7 @@ int vpnsvc_deinit(vpnsvc_tun_h handle)
 	return result;
 }
 
-int vpnsvc_protect(vpnsvc_tun_h handle, int socket_fd, const char* dev_name)
+EXPORT_API int vpnsvc_protect(vpnsvc_h handle, int socket_fd, const char* dev_name)
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
 
@@ -417,7 +422,7 @@ int vpnsvc_protect(vpnsvc_tun_h handle, int socket_fd, const char* dev_name)
 	return result;
 }
 
-int vpnsvc_up(vpnsvc_tun_h handle, const char* local_ip, const char* remote_ip,
+EXPORT_API int vpnsvc_up(vpnsvc_h handle, const char* local_ip, const char* remote_ip,
 				const char* dest[], int prefix[], size_t nr_routes,
 				const char** dns_servers, size_t nr_dns_servers,
 				const char* dns_suffix)
@@ -507,7 +512,7 @@ int vpnsvc_up(vpnsvc_tun_h handle, const char* local_ip, const char* remote_ip,
 	return result;
 }
 
-int vpnsvc_down(vpnsvc_tun_h handle)
+EXPORT_API int vpnsvc_down(vpnsvc_h handle)
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
 
@@ -558,7 +563,7 @@ int vpnsvc_down(vpnsvc_tun_h handle)
 }
 
 /* this API must not be use IPC */
-int vpnsvc_read(vpnsvc_tun_h handle, int timeout_ms)
+EXPORT_API int vpnsvc_read(vpnsvc_h handle, int timeout_ms)
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
 
@@ -600,7 +605,7 @@ int vpnsvc_read(vpnsvc_tun_h handle, int timeout_ms)
 }
 
 /* this API must not be use IPC */
-int vpnsvc_write(vpnsvc_tun_h handle, const char* data, size_t size)
+EXPORT_API int vpnsvc_write(vpnsvc_h handle, const char* data, size_t size)
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
 
@@ -622,7 +627,7 @@ int vpnsvc_write(vpnsvc_tun_h handle, const char* data, size_t size)
 }
 
 
-int vpnsvc_block_networks(vpnsvc_tun_h handle,
+EXPORT_API int vpnsvc_block_networks(vpnsvc_h handle,
 		const char* dest_vpn[],
 		int prefix_vpn[],
 		size_t nr_allow_routes_vpn,
@@ -694,7 +699,7 @@ int vpnsvc_block_networks(vpnsvc_tun_h handle,
 	return result;
 }
 
-int vpnsvc_unblock_networks(vpnsvc_tun_h handle)
+EXPORT_API int vpnsvc_unblock_networks(vpnsvc_h handle)
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
 
@@ -740,7 +745,7 @@ int vpnsvc_unblock_networks(vpnsvc_tun_h handle)
 	return result;
 }
 
-int vpnsvc_get_tun_fd(vpnsvc_tun_h handle, int* tun_fd)
+EXPORT_API int vpnsvc_get_tun_fd(vpnsvc_h handle, int* tun_fd)
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
 
@@ -763,7 +768,7 @@ int vpnsvc_get_tun_fd(vpnsvc_tun_h handle, int* tun_fd)
 	return VPNSVC_ERROR_NONE;
 }
 
-int vpnsvc_get_tun_index(vpnsvc_tun_h handle, int* tun_index)
+EXPORT_API int vpnsvc_get_tun_index(vpnsvc_h handle, int* tun_index)
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
 
@@ -787,7 +792,7 @@ int vpnsvc_get_tun_index(vpnsvc_tun_h handle, int* tun_index)
 	return VPNSVC_ERROR_NONE;
 }
 
-int vpnsvc_get_tun_name(vpnsvc_tun_h handle, char** tun_name)
+EXPORT_API int vpnsvc_get_tun_name(vpnsvc_h handle, char** tun_name)
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
 
@@ -817,7 +822,7 @@ int vpnsvc_get_tun_name(vpnsvc_tun_h handle, char** tun_name)
 	return VPNSVC_ERROR_NONE;
 }
 
-int vpnsvc_set_mtu(vpnsvc_tun_h handle, int mtu)
+EXPORT_API int vpnsvc_set_mtu(vpnsvc_h handle, int mtu)
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
 
@@ -839,7 +844,7 @@ int vpnsvc_set_mtu(vpnsvc_tun_h handle, int mtu)
 	return VPNSVC_ERROR_NONE;
 }
 
-int vpnsvc_set_blocking(vpnsvc_tun_h handle, bool blocking)
+EXPORT_API int vpnsvc_set_blocking(vpnsvc_h handle, bool blocking)
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
 
@@ -877,7 +882,7 @@ int vpnsvc_set_blocking(vpnsvc_tun_h handle, bool blocking)
 	return VPNSVC_ERROR_NONE;
 }
 
-int vpnsvc_set_session(vpnsvc_tun_h handle, const char* session)
+EXPORT_API int vpnsvc_set_session(vpnsvc_h handle, const char* session)
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
 
@@ -901,7 +906,7 @@ int vpnsvc_set_session(vpnsvc_tun_h handle, const char* session)
 	return VPNSVC_ERROR_NONE;
 }
 
-int vpnsvc_get_session(vpnsvc_tun_h handle, char** session)
+EXPORT_API int vpnsvc_get_session(vpnsvc_h handle, char** session)
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
 

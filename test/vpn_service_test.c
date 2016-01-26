@@ -38,7 +38,7 @@
 		perror("fgets() failed!!!");\
 	} while (0);
 
-vpnsvc_tun_h handle = NULL;
+vpnsvc_h handle = NULL;
 
 int test_vpnsvc_init()
 {
