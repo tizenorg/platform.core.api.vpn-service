@@ -35,6 +35,7 @@
 #include <gio/gio.h>
 
 #include "vpn_service.h"
+#include "vpn_service_internal.h"
 
 #ifdef __cplusplus
 extern "C" {
