@@ -23,14 +23,14 @@
 
 #include "capi_vpn_service_private.h"
 
-int vpn_daemon_init(const char* if_name, size_t if_name_len, int fd, vpnsvc_tun_s *handle_s);
+int vpn_daemon_init(const char* iface_name, size_t iface_name_len, int fd, vpnsvc_tun_s *handle_s);
 int vpn_daemon_deinit(const char* dev_name);
 int vpn_daemon_protect(int socket, const char* dev_name);
-int vpn_daemon_up(int if_index, const char* local_ip, const char* remote_ip,
+int vpn_daemon_up(int iface_index, const char* local_ip, const char* remote_ip,
 						const char* routes[], int prefix[], size_t nr_routes,
 						char** dns_servers, size_t nr_dns, size_t total_dns_string_cnt,
 						const char* dns_suffix, const unsigned int mtu);
-int vpn_daemon_down(int if_index);
+int vpn_daemon_down(int iface_index);
 int vpn_daemon_block_networks(const char* nets_vpn[], int prefix_vpn[], size_t nr_nets_vpn,
 		const char* nets_orig[], int prefix_orig[], size_t nr_nets_orig);
 int vpn_daemon_unblock_networks(void);

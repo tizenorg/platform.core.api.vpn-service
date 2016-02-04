@@ -103,7 +103,7 @@ static void _vpnsvc_deinit_vpnsvc_tun_s(vpnsvc_tun_s *s)
 
 	s->fd = 0;
 	s->index = 0;
-	memset(s->name, 0, VPNSVC_VPN_IF_NAME_LEN);
+	memset(s->name, 0, VPNSVC_VPN_IFACE_NAME_LEN);
 	memset(s->session, 0, VPNSVC_SESSION_STRING_LEN);
 
 	if (s)
@@ -222,20 +222,20 @@ GVariant *_vpnsvc_invoke_dbus_method_with_fd(GDBusConnection *connection,
 	return reply;
 }
 
-EXPORT_API int vpnsvc_init(const char* if_name, vpnsvc_h *handle)
+EXPORT_API int vpnsvc_init(const char* iface_name, vpnsvc_h *handle)
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
 
 	int result = VPNSVC_ERROR_NONE;
 	int dbus_result;
-	int if_fd = 0;
+	int iface_fd = 0;
 
-	LOGD("enter vpnsvc_init, if_name : %s", if_name);
+	LOGD("enter vpnsvc_init, iface_name : %s", iface_name);
 	LOGD("handle : %p\n", handle);
 
 	/* parameter check */
-	if (if_name == NULL || strlen(if_name) <= 0) {
-		LOGE("if_name is a NULL");
+	if (iface_name == NULL || strlen(iface_name) <= 0) {
+		LOGE("iface_name is a NULL");
 		return VPNSVC_ERROR_INVALID_PARAMETER;
 	} else if (handle == NULL) {
 		LOGE("handle is a NULL");
@@ -278,25 +278,25 @@ EXPORT_API int vpnsvc_init(const char* if_name, vpnsvc_h *handle)
 		op = NULL;
 	}
 
-	if ((if_fd = open("/dev/net/tun", O_RDWR)) < 0) {
+	if ((iface_fd = open("/dev/net/tun", O_RDWR)) < 0) {
 		LOGE("tun device open fail\n");
 		_vpnsvc_deinit_vpnsvc_tun_s(tmp_s);
 		return VPNSVC_ERROR_IO_ERROR;
 	}
 
-	LOGD("client if_fd : %d", if_fd);
+	LOGD("client iface_fd : %d", iface_fd);
 
 	op = _vpnsvc_invoke_dbus_method_with_fd(tmp_s->connection,
 							VPNSVC_DBUS_SERVICE_NAME,
 							VPNSVC_DBUS_INTERFACE_OBJ_NAME,
 							VPNSVC_DBUS_INTERFACE_NAME,
 							"vpn_init",
-							g_variant_new("(su)", if_name, strlen(if_name)),
-							if_fd,
+							g_variant_new("(su)", iface_name, strlen(iface_name)),
+							iface_fd,
 							&dbus_result);
 
 	if (op == NULL) {
-		close(if_fd);
+		close(iface_fd);
 		_vpnsvc_deinit_vpnsvc_tun_s(tmp_s);
 		return VPNSVC_ERROR_IPC_FAILED;
 	} else {
@@ -310,10 +310,10 @@ EXPORT_API int vpnsvc_init(const char* if_name, vpnsvc_h *handle)
 			result = VPNSVC_ERROR_IPC_FAILED;
 		} else {
 			LOGD("vpnsvc_init() succeed");
-			tmp_s->fd = if_fd;	/* client fd must be set */
+			tmp_s->fd = iface_fd;	/* client fd must be set */
 			tmp_s->index = tmp_index;
-			strncpy(tmp_s->name, tmp_name, VPNSVC_VPN_IF_NAME_LEN);
-			tmp_s->name[VPNSVC_VPN_IF_NAME_LEN-1] = '\0';
+			strncpy(tmp_s->name, tmp_name, VPNSVC_VPN_IFACE_NAME_LEN);
+			tmp_s->name[VPNSVC_VPN_IFACE_NAME_LEN-1] = '\0';
 			*handle = tmp_s;
 			LOGD("handle : %p, handle->fd : %d, handle->index : %d, handle->name : %s",
 				(*handle), ((vpnsvc_tun_s*)*handle)->fd, ((vpnsvc_tun_s*)*handle)->index, ((vpnsvc_tun_s*)*handle)->name);
@@ -342,7 +342,7 @@ EXPORT_API int vpnsvc_deinit(vpnsvc_h handle)
 	}
 	tun_s = (vpnsvc_tun_s*)handle;
 
-	LOGD("enter vpnsvc_deinit, if_fd : %d", tun_s->fd);
+	LOGD("enter vpnsvc_deinit, iface_fd : %d", tun_s->fd);
 
 	if (tun_s->fd > 0) {
 		op = _vpnsvc_invoke_dbus_method(tun_s->connection,
@@ -376,7 +376,7 @@ EXPORT_API int vpnsvc_deinit(vpnsvc_h handle)
 	return result;
 }
 
-EXPORT_API int vpnsvc_protect(vpnsvc_h handle, int socket_fd, const char* dev_name)
+EXPORT_API int vpnsvc_protect(vpnsvc_h handle, int socket_fd, const char* iface_name)
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
 
@@ -391,7 +391,7 @@ EXPORT_API int vpnsvc_protect(vpnsvc_h handle, int socket_fd, const char* dev_na
 	}
 	tun_s = (vpnsvc_tun_s*)handle;
 
-	LOGD("enter vpnsvc_protect, socket : %d, dev_name : %s", socket_fd, dev_name);
+	LOGD("enter vpnsvc_protect, socket : %d, dev_name : %s", socket_fd, iface_name);
 
 	if (tun_s->connection == NULL) {
 		LOGE("Connection Object is NULL");
@@ -404,7 +404,7 @@ EXPORT_API int vpnsvc_protect(vpnsvc_h handle, int socket_fd, const char* dev_na
 						VPNSVC_DBUS_INTERFACE_OBJ_NAME,
 						VPNSVC_DBUS_INTERFACE_NAME,
 						"vpn_protect",
-						g_variant_new("(s)", dev_name),
+						g_variant_new("(s)", iface_name),
 						socket_fd,
 						&dbus_result);
 
@@ -423,8 +423,8 @@ EXPORT_API int vpnsvc_protect(vpnsvc_h handle, int socket_fd, const char* dev_na
 }
 
 EXPORT_API int vpnsvc_up(vpnsvc_h handle, const char* local_ip, const char* remote_ip,
-				const char* dest[], int prefix[], size_t nr_routes,
-				const char** dns_servers, size_t nr_dns_servers,
+				const char* routes_dest_add[], int routes_prefix[], size_t num_routes,
+				const char** dns_servers, size_t num_dns_servers,
 				const char* dns_suffix)
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
@@ -459,25 +459,25 @@ EXPORT_API int vpnsvc_up(vpnsvc_h handle, const char* local_ip, const char* remo
 		return VPNSVC_ERROR_INVALID_PARAMETER;
 	}
 
-	LOGD("if_index %d", tun_s->index);
+	LOGD("iface_index %d", tun_s->index);
 	LOGD("local_ip : %s, remote_ip : %s", local_ip, remote_ip);
 
 	/* make a route parameter */
 	g_variant_builder_init(&route_builder, G_VARIANT_TYPE("a{si}"));
-	for (i = 0 ; i < nr_routes ; i++) {
-		if (strlen(dest[i]) <= 0) {
+	for (i = 0 ; i < num_routes ; i++) {
+		if (strlen(routes_dest_add[i]) <= 0) {
 			LOGE("invalid dest[%d]", i);
 			return VPNSVC_ERROR_INVALID_PARAMETER;
 		}
-		g_variant_builder_add(&route_builder, "{si}", dest[i], prefix[i]);
-		LOGD("dest[%d] : %s", i, dest[i]);
-		LOGD("prefix[i] : %d", i,  prefix[i]);
+		g_variant_builder_add(&route_builder, "{si}", routes_dest_add[i], routes_prefix[i]);
+		LOGD("dest[%d] : %s", i, routes_dest_add[i]);
+		LOGD("prefix[i] : %d", i,  routes_prefix[i]);
 	}
 	route_param = g_variant_builder_end(&route_builder);
 
 	/* make a dns parameter */
 	g_variant_builder_init(&dns_builder, G_VARIANT_TYPE("as"));
-	for (i = 0 ; i < nr_dns_servers ; i++) {
+	for (i = 0 ; i < num_dns_servers ; i++) {
 		if (strlen(dns_servers[i]) <= 0) {
 			LOGE("invalid dns_servers[%d]", i);
 			return VPNSVC_ERROR_INVALID_PARAMETER;
@@ -495,7 +495,7 @@ EXPORT_API int vpnsvc_up(vpnsvc_h handle, const char* local_ip, const char* remo
 								VPNSVC_DBUS_INTERFACE_NAME,
 								"vpn_up",
 								g_variant_new("(issvuvusu)", tun_s->index, local_ip, \
-								remote_ip, route_param, nr_routes, dns_param, nr_dns_servers, \
+								remote_ip, route_param, num_routes, dns_param, num_dns_servers, \
 								dns_suffix, tun_s->mtu),
 								&dbus_result);
 
@@ -628,12 +628,12 @@ EXPORT_API int vpnsvc_write(vpnsvc_h handle, const char* data, size_t size)
 
 
 EXPORT_API int vpnsvc_block_networks(vpnsvc_h handle,
-		const char* dest_vpn[],
-		int prefix_vpn[],
-		size_t nr_allow_routes_vpn,
-		const char* dest_orig[],
-		int prefix_orig[],
-		size_t nr_allow_routes_orig)
+		const char* routes_dest_vpn_addr[],
+		int routes_vpn_prefix[],
+		size_t num_allow_routes_vpn,
+		const char* routes_dest_orig_addr[],
+		int routes_orig_prefix[],
+		size_t num_allow_routes_orig)
 
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
@@ -661,19 +661,19 @@ EXPORT_API int vpnsvc_block_networks(vpnsvc_h handle,
 	}
 	/* make a route parameter for allowed VPN interface routes */
 	g_variant_builder_init(&nets_builder, G_VARIANT_TYPE("a{si}"));
-	for (i = 0 ; i < nr_allow_routes_vpn ; i++) {
-		g_variant_builder_add(&nets_builder, "{si}", dest_vpn[i], prefix_vpn[i]);
-		LOGD("dest_vpn[%d] : %s", i, dest_vpn[i]);
-		LOGD("prefix_vpn[%d] : %d", i,  prefix_vpn[i]);
+	for (i = 0 ; i < num_allow_routes_vpn ; i++) {
+		g_variant_builder_add(&nets_builder, "{si}", routes_dest_vpn_addr[i], routes_vpn_prefix[i]);
+		LOGD("dest_vpn[%d] : %s", i, routes_dest_vpn_addr[i]);
+		LOGD("prefix_vpn[%d] : %d", i,  routes_vpn_prefix[i]);
 	}
 	nets_param_vpn = g_variant_builder_end(&nets_builder);
 
 	/* make a route parameter for allowed Original interface Routes */
 	g_variant_builder_init(&nets_builder, G_VARIANT_TYPE("a{si}"));
-	for (i = 0 ; i < nr_allow_routes_orig ; i++) {
-		g_variant_builder_add(&nets_builder, "{si}", dest_orig[i], prefix_orig[i]);
-		LOGD("dest_orig[%d] : %s", i, dest_orig[i]);
-		LOGD("prefix_orig[%d] : %d", i,  prefix_orig[i]);
+	for (i = 0 ; i < num_allow_routes_orig ; i++) {
+		g_variant_builder_add(&nets_builder, "{si}", routes_dest_orig_addr[i], routes_orig_prefix[i]);
+		LOGD("dest_orig[%d] : %s", i, routes_dest_orig_addr[i]);
+		LOGD("prefix_orig[%d] : %d", i,  routes_orig_prefix[i]);
 	}
 	nets_param_orig = g_variant_builder_end(&nets_builder);
 
@@ -682,8 +682,8 @@ EXPORT_API int vpnsvc_block_networks(vpnsvc_h handle,
 								VPNSVC_DBUS_INTERFACE_OBJ_NAME,
 								VPNSVC_DBUS_INTERFACE_NAME,
 								"vpn_block_networks",
-								g_variant_new("(vuvu)", nets_param_vpn, nr_allow_routes_vpn,
-								nets_param_orig, nr_allow_routes_orig),
+								g_variant_new("(vuvu)", nets_param_vpn, num_allow_routes_vpn,
+								nets_param_orig, num_allow_routes_orig),
 								&dbus_result);
 
 	if (op == NULL) {
@@ -745,14 +745,14 @@ EXPORT_API int vpnsvc_unblock_networks(vpnsvc_h handle)
 	return result;
 }
 
-EXPORT_API int vpnsvc_get_if_fd(vpnsvc_h handle, int* if_fd)
+EXPORT_API int vpnsvc_get_iface_fd(vpnsvc_h handle, int* iface_fd)
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
 
 	vpnsvc_tun_s *tun_s = NULL;
 
 	/* parameter check */
-	if (handle == NULL || if_fd == NULL) {
+	if (handle == NULL || iface_fd == NULL) {
 		LOGE("Invalid parameter");
 		return VPNSVC_ERROR_INVALID_PARAMETER;
 	}
@@ -763,19 +763,19 @@ EXPORT_API int vpnsvc_get_if_fd(vpnsvc_h handle, int* if_fd)
 		return VPNSVC_ERROR_INVALID_PARAMETER;
 	}
 
-	*if_fd = (int)(tun_s->fd);
+	*iface_fd = (int)(tun_s->fd);
 
 	return VPNSVC_ERROR_NONE;
 }
 
-EXPORT_API int vpnsvc_get_if_index(vpnsvc_h handle, int* if_index)
+EXPORT_API int vpnsvc_get_iface_index(vpnsvc_h handle, int* iface_index)
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
 
 	vpnsvc_tun_s *tun_s = NULL;
 
 	/* parameter check */
-	if (handle == NULL || if_index == NULL) {
+	if (handle == NULL || iface_index == NULL) {
 		LOGE("Invalid parameter");
 		return VPNSVC_ERROR_INVALID_PARAMETER;
 	}
@@ -787,17 +787,17 @@ EXPORT_API int vpnsvc_get_if_index(vpnsvc_h handle, int* if_index)
 		return VPNSVC_ERROR_INVALID_PARAMETER;
 	}
 
-	*if_index = (int)(tun_s->index);
+	*iface_index = (int)(tun_s->index);
 
 	return VPNSVC_ERROR_NONE;
 }
 
-EXPORT_API int vpnsvc_get_if_name(vpnsvc_h handle, char** if_name)
+EXPORT_API int vpnsvc_get_iface_name(vpnsvc_h handle, char** iface_name)
 {
 	CHECK_FEATURE_SUPPORTED(VPN_SERVICE_FEATURE);
 
 	vpnsvc_tun_s *tun_s = NULL;
-	char la_if_name[VPNSVC_VPN_IF_NAME_LEN + 1] = { 0, };
+	char la_iface_name[VPNSVC_VPN_IFACE_NAME_LEN + 1] = { 0, };
 
 	/* parameter check */
 	if (handle == NULL) {
@@ -811,13 +811,13 @@ EXPORT_API int vpnsvc_get_if_name(vpnsvc_h handle, char** if_name)
 		return VPNSVC_ERROR_INVALID_PARAMETER;
 	}
 
-	if (if_name == NULL) {
+	if (iface_name == NULL) {
 		LOGE("tun name string is NULL");
 		return VPNSVC_ERROR_INVALID_PARAMETER;
 	}
 
-	g_strlcpy(la_if_name, tun_s->name, VPNSVC_VPN_IF_NAME_LEN + 1);
-	*if_name = g_strdup(la_if_name);
+	g_strlcpy(la_iface_name, tun_s->name, VPNSVC_VPN_IFACE_NAME_LEN + 1);
+	*iface_name = g_strdup(la_iface_name);
 
 	return VPNSVC_ERROR_NONE;
 }

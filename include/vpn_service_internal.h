@@ -34,50 +34,50 @@ extern "C" {
 
 /**
  * @internal
- * @brief Sets-up TUN interface and brings it up. Installs specified routes/DNS servers/DNS suffix.
+ * @brief Sets-up VPN interface and brings it up. Installs specified routes/DNS servers/DNS suffix.
  * @since_tizen 3.0
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/vpnservice.admin
- * @param[in] handle         The VPN tun interface handle
- * @param[in] local_ip       The local IP address
- * @param[in] remote_ip      The remote IP address
- * @param[in] dest           Destination address of the route
- * @param[in] prefix         The prefix of route
- * @param[in] nr_routes      The number of routes
- * @param[in] dns_servers    The list of DNS server names - Optional
- * @param[in] nr_dns_servers The number of DNS server names - Optionl
- * @param[in] dns_suffix     The DNS suffix - Optional
+ * @param[in] handle				The VPN interface handle
+ * @param[in] local_ip				The local(vpn client) IP address
+ * @param[in] remote_ip				The remote(vpn server) IP address
+ * @param[in] routes_dest_addr		Destination address of the routes
+ * @param[in] routes_prefix         The prefix of routes, netmask length (also called a prefix, e.g. 8, 16, 24, 32)
+ * @param[in] num_routes			The number of routes, Unlimitation
+ * @param[in] dns_servers			The list of DNS server names - Optional
+ * @param[in] num_dns_servers		The number of DNS server names - Optionl, Unlimitation
+ * @param[in] dns_suffix     		The DNS suffix - Optional (e.g. tizen.org)
  * @return 0 on success. otherwise, a negative error value.
  * @retval #VPNSVC_ERROR_NONE                  Success
  * @retval #VPNSVC_ERROR_INVALID_PARAMETER     Invalid parameter
  * @retval #VPNSVC_ERROR_IPC_FAILED            Cannot connect to service daemon
  * @retval #VPNSVC_ERROR_PERMISSION_DENIED     Permission Denied
  * @retval #VPNSVC_ERROR_NOT_SUPPORTED         Not Supported
- * @pre The VPN tun interface should be initialized already.
+ * @pre The VPN interface should be initialized already.
  * @post If you want to set interface down, please call vpnsvc_down().
  * @see vpnsvc_init()
  * @see vpnsvc_down()
  */
 int vpnsvc_up(vpnsvc_h handle, const char* local_ip, const char* remote_ip,
-				const char *dest[], int prefix[], size_t nr_routes,
-				const char** dns_servers, size_t nr_dns_servers,
+				const char *routes_dest_addr[], int routes_prefix[], size_t num_routes,
+				const char** dns_servers, size_t num_dns_servers,
 				const char* dns_suffix);
 
 /**
  * @internal
- * @brief Brings the TUN interface down and restores original DNS servers/domains.
+ * @brief Brings the VPN interface down and restores original DNS servers/domains.
  * @since_tizen 3.0
  * @privlevel platform
  * @privilege %http://tizen.org/privilege/vpnservice.admin
- * @param[in] handle The VPN tun interface handle
+ * @param[in] handle The VPN interface handle
  * @return 0 on success. otherwise, a negative error value.
  * @retval #VPNSVC_ERROR_NONE                  Success
  * @retval #VPNSVC_ERROR_INVALID_PARAMETER     Invalid parameter
  * @retval #VPNSVC_ERROR_IPC_FAILED            Cannot connect to service daemon
  * @retval #VPNSVC_ERROR_PERMISSION_DENIED     Permission Denied
  * @retval #VPNSVC_ERROR_NOT_SUPPORTED         Not Supported
- * @pre The VPN tun interface should be initialized already.
- * @post Please call vpnsvc_deinit() if you want to de-initialize VPN tun interface.
+ * @pre The VPN interface should be initialized and sets-up VPN interface already.
+ * @post Please call vpnsvc_deinit() if you want to de-initialize VPN interface.
  * @see vpnsvc_up()
  * @see vpnsvc_deinit()
  */

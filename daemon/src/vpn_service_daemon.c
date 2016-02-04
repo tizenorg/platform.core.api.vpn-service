@@ -82,7 +82,7 @@ static in_addr_t host2net(ipv4 host)
 	return net;
 }
 
-static int add_routes(char* if_name, const char* routes[], int prefix[], size_t nr_routes)
+static int add_routes(char* iface_name, const char* routes[], int prefix[], size_t nr_routes)
 {
 	struct rtentry rt;
 	struct sockaddr_in addr;
@@ -118,7 +118,7 @@ static int add_routes(char* if_name, const char* routes[], int prefix[], size_t 
 		addr.sin_addr.s_addr = host2net(make_mask(prefix[i]));
 		memcpy(&rt.rt_genmask, &addr, sizeof(rt.rt_genmask));
 
-		rt.rt_dev = if_name;
+		rt.rt_dev = iface_name;
 
 		if (ioctl(sk, SIOCADDRT, &rt) < 0) {
 			LOGE("ioctl SIOCADDRT failed : %s", strerror(errno));
@@ -609,12 +609,12 @@ void iptables_delete(const char *addr, const int mask)
 	iptables_rule('D', addr, mask);
 }
 
-static int get_interface_index(const char *if_name)
+static int get_interface_index(const char *iface_name)
 {
 	struct ifreq ifr;
 	int sk = 0;
 
-	LOGD("enter get_interface_index, if_name : %s", if_name);
+	LOGD("enter get_interface_index, iface_name : %s", iface_name);
 
 	sk = socket(PF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
 	if (sk < 0) {
@@ -624,8 +624,8 @@ static int get_interface_index(const char *if_name)
 
 	memset(&ifr, 0, sizeof(ifr));
 
-	if (*if_name)
-	strncpy(ifr.ifr_name, if_name, strlen(if_name));
+	if (*iface_name)
+	strncpy(ifr.ifr_name, iface_name, strlen(iface_name));
 
 	/* get an interface name by ifindex */
 	if (ioctl(sk, SIOCGIFINDEX, &ifr) < 0) {
@@ -640,12 +640,12 @@ static int get_interface_index(const char *if_name)
 }
 
 
-int vpn_daemon_init(const char* if_name, size_t if_name_len, int fd, vpnsvc_tun_s *handle_s)
+int vpn_daemon_init(const char* iface_name, size_t iface_name_len, int fd, vpnsvc_tun_s *handle_s)
 {
 	struct ifreq ifr;
 	size_t len = 0;
 
-	LOGD("enter vpn_daemon_init, if_name : %s, if_name_len : %d, fd : %d\n", if_name, if_name_len, fd);
+	LOGD("enter vpn_daemon_init, iface_name : %s, iface_name_len : %d, fd : %d\n", iface_name, iface_name_len, fd);
 
 	memset(&ifr, 0, sizeof(ifr));
 
@@ -657,8 +657,8 @@ int vpn_daemon_init(const char* if_name, size_t if_name_len, int fd, vpnsvc_tun_
 
 	ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
 
-	if (*if_name)
-		strncpy(ifr.ifr_name, if_name, if_name_len);
+	if (*iface_name)
+		strncpy(ifr.ifr_name, iface_name, iface_name_len);
 
 	LOGD("before init, ifindex : %d", ifr.ifr_ifindex);
 
@@ -681,7 +681,7 @@ int vpn_daemon_init(const char* if_name, size_t if_name_len, int fd, vpnsvc_tun_
 	}
 
 	handle_s->fd = 0;   /* server fd does not meaning */
-	handle_s->index = get_interface_index(if_name);
+	handle_s->index = get_interface_index(iface_name);
 	len = strlen(ifr.ifr_name);
 	strncpy(handle_s->name, ifr.ifr_name, len);
 	handle_s->name[len] = '\0';
@@ -724,7 +724,7 @@ int vpn_daemon_protect(int socket_fd, const char* dev_name)
 	return ret;
 }
 
-int vpn_daemon_up(int if_index, const char* local_ip, const char* remote_ip,
+int vpn_daemon_up(int iface_index, const char* local_ip, const char* remote_ip,
 						const char* routes[], int prefix[], size_t nr_routes,
 						char** dns_servers, size_t nr_dns, size_t total_dns_string_cnt,
 						const char* dns_suffix, const unsigned int mtu) {
@@ -737,7 +737,7 @@ int vpn_daemon_up(int if_index, const char* local_ip, const char* remote_ip,
 
 	LOGD("enter vpn_daemon_up");
 
-	LOGD("if_index : %d", if_index);
+	LOGD("iface_index : %d", iface_index);
 	LOGD("local ip : %s", local_ip);
 	LOGD("remote ip : %s", remote_ip);
 	LOGD("route pointer : %p, nr_routes : %d, dns_server pointer : %p, nr_dns : %d, dns_suffix : %s, mtu : %d", routes, nr_routes, dns_servers, nr_dns, dns_suffix, mtu);
@@ -750,7 +750,7 @@ int vpn_daemon_up(int if_index, const char* local_ip, const char* remote_ip,
 	}
 
 	memset(&ifr_tun, 0, sizeof(ifr_tun));
-	ifr_tun.ifr_ifindex = if_index;
+	ifr_tun.ifr_ifindex = iface_index;
 
 	/* get an interface name by ifindex */
 	if (ioctl(sk, SIOCGIFNAME, &ifr_tun) < 0) {
@@ -845,7 +845,7 @@ int vpn_daemon_up(int if_index, const char* local_ip, const char* remote_ip,
 	return ret;
 }
 
-int vpn_daemon_down(int if_index)
+int vpn_daemon_down(int iface_index)
 {
 	struct ifreq ifr, addr_ifr;
 	struct sockaddr_in *addr = NULL;
@@ -858,7 +858,7 @@ int vpn_daemon_down(int if_index)
 	}
 
 	memset(&ifr, 0, sizeof(ifr));
-	ifr.ifr_ifindex = if_index;
+	ifr.ifr_ifindex = iface_index;
 
 	if (ioctl(sk, SIOCGIFNAME, &ifr) < 0) {
 		LOGE("ioctl SIOCGIFNAME failed : %s", strerror(errno));

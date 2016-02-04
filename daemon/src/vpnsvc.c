@@ -38,8 +38,8 @@ static Vpnsvc *vpnsvc = NULL;
  ********************/
 gboolean handle_vpn_init(Vpnsvc *object,
 								GDBusMethodInvocation *invocation,
-								const gchar *arg_if_name,
-								guint arg_if_name_len)
+								const gchar *arg_iface_name,
+								guint arg_iface_name_len)
 {
 	LOGD("handle_vpn_init");
 
@@ -50,7 +50,7 @@ gboolean handle_vpn_init(Vpnsvc *object,
 	int fd_list_length;
 	const int *fds;
 
-	LOGD("vpn_init, %s, %u\n", arg_if_name, arg_if_name_len);
+	LOGD("vpn_init, %s, %u\n", arg_iface_name, arg_iface_name_len);
 
 	msg = g_dbus_method_invocation_get_message(invocation);
 	fd_list = g_dbus_message_get_unix_fd_list(msg);
@@ -61,7 +61,7 @@ gboolean handle_vpn_init(Vpnsvc *object,
 
 	LOGD("fd:%d\n", *fds);
 
-	result = vpn_daemon_init(arg_if_name, arg_if_name_len, *fds, &handle_s);
+	result = vpn_daemon_init(arg_iface_name, arg_iface_name_len, *fds, &handle_s);
 
 	LOGD("handle_s.fd : %d, handle_s.index : %d, handle_s.name : %s",
 			handle_s.fd, handle_s.index, handle_s.name);
@@ -118,7 +118,7 @@ gboolean handle_vpn_protect(Vpnsvc *object,
 
 gboolean handle_vpn_up(Vpnsvc *object,
 								GDBusMethodInvocation *invocation,
-								gint arg_if_index,
+								gint arg_iface_index,
 								const gchar *arg_local_ip,
 								const gchar *arg_remote_ip,
 								GVariant *arg_routes,
@@ -144,7 +144,7 @@ gboolean handle_vpn_up(Vpnsvc *object,
 	gchar* route_dest;
 	gint route_prefix;
 
-	LOGD("if_index : %d", arg_if_index);
+	LOGD("iface_index : %d", arg_iface_index);
 	LOGD("local ip : %s", arg_local_ip);
 	LOGD("remote ip : %s", arg_remote_ip);
 	LOGD("dns_suffix : %s", arg_dns_suffix);
@@ -199,7 +199,7 @@ gboolean handle_vpn_up(Vpnsvc *object,
 		}
 	}
 
-	result = vpn_daemon_up(arg_if_index, arg_local_ip, arg_remote_ip,
+	result = vpn_daemon_up(arg_iface_index, arg_local_ip, arg_remote_ip,
 			routes, prefix, arg_nr_routes, dns_servers, arg_nr_dns,
 			total_dns_string_cnt, arg_dns_suffix, arg_mtu);
 done:
@@ -219,14 +219,14 @@ done:
 
 gboolean handle_vpn_down(Vpnsvc *object,
 									GDBusMethodInvocation *invocation,
-									gint arg_if_index)
+									gint arg_iface_index)
 {
 	LOGD("handle_vpn_down");
 	int result = VPNSVC_ERROR_NONE;
 
-	LOGD("vpn_down, %d\n", arg_if_index);
+	LOGD("vpn_down, %d\n", arg_iface_index);
 
-	result = vpn_daemon_down(arg_if_index);
+	result = vpn_daemon_down(arg_iface_index);
 
 	vpnsvc_complete_vpn_down(object, invocation, result);
 
