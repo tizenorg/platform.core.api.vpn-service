@@ -56,19 +56,19 @@ int test_vpnsvc_init()
 		char* result_name = NULL;
 		printf("vpnsvc_init Succeed : %d\n", ret);
 
-		if (vpnsvc_get_if_fd(handle, &int_value) == VPNSVC_ERROR_NONE)
-			printf("if_fd : %d\n", int_value);
+		if (vpnsvc_get_iface_fd(handle, &int_value) == VPNSVC_ERROR_NONE)
+			printf("iface_fd : %d\n", int_value);
 		else
-			printf("Fail to get if_fd\n");
+			printf("Fail to get iface_fd\n");
 
-		if (vpnsvc_get_if_index(handle, &int_value) == VPNSVC_ERROR_NONE)
-			printf("if_index : %d\n", int_value);
+		if (vpnsvc_get_iface_index(handle, &int_value) == VPNSVC_ERROR_NONE)
+			printf("iface_index : %d\n", int_value);
 		else
-			printf("Fail to get if_index\n");
+			printf("Fail to get iface_index\n");
 
-		ret = vpnsvc_get_if_name(handle, &result_name);
+		ret = vpnsvc_get_iface_name(handle, &result_name);
 		if (ret == VPNSVC_ERROR_NONE)
-			printf("if_name : %s\n", result_name);
+			printf("iface_name : %s\n", result_name);
 	}
 
 	return 0;

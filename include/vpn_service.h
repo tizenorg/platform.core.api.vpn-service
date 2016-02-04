@@ -42,13 +42,17 @@ extern "C" {
   * @brief VPN interface name length.
   * @since_tizen 3.0
   */
-#define VPNSVC_VPN_IF_NAME_LEN 16
+#define VPNSVC_VPN_IFACE_NAME_LEN 16
 
 /**
   * @brief Session name string length (includes end null character).
   * @since_tizen 3.0
   */
 #define VPNSVC_SESSION_STRING_LEN 32
+
+#ifndef TIZEN_ERROR_VPNSVC
+#define TIZEN_ERROR_VPNSVC -0x03200000
+#endif
 
 /**
   * @brief   Enumeration for VPN service error types.
@@ -79,13 +83,13 @@ typedef void* vpnsvc_h;
 
 /**
  * @brief  Initializes VPN interface.
- * @detail You should call vpnsvc_get_if_name() for checking the actual initialized VPN interface name. (In case of duplicated interface name)
+ * @detail You should call vpnsvc_get_iface_name() for checking the actual initialized VPN interface name. (In case of duplicated interface name)
  * @since_tizen 3.0
  * @privlevel public
  * @privilege %http://tizen.org/privilege/vpnservice \n
  *            %http://tizen.org/privilege/internet
  * @remarks The @a handle should be released using vpnsvc_deinit().
- * @param[in] if_name The VPN interface name
+ * @param[in] iface_name The VPN interface name
  * @param[out] handle  The VPN interface handle
  * @return 0 on success. otherwise, a negative error value.
  * @retval #VPNSVC_ERROR_NONE                  Success
@@ -95,15 +99,15 @@ typedef void* vpnsvc_h;
  * @retval #VPNSVC_ERROR_PERMISSION_DENIED     Permission Denied
  * @retval #VPNSVC_ERROR_NOT_SUPPORTED         Not Supported
  * @post Please call vpnsvc_deinit() if you want to de-initialize VPN interface.
- * @post Please call vpnsvc_get_if_fd() if you want to know the fd of VPN interface.
- * @post Please call vpnsvc_get_if_index() if you want to know the fd of VPN interface index.
- * @post Please call vpnsvc_get_if_name() if you want to know the name of VPN interface.
+ * @post Please call vpnsvc_get_iface_fd() if you want to know the fd(file descriptor) of VPN interface.
+ * @post Please call vpnsvc_get_iface_index() if you want to know the index of VPN interface.
+ * @post Please call vpnsvc_get_iface_name() if you want to know the name of VPN interface.
  * @see vpnsvc_deinit()
- * @see vpnsvc_get_if_fd()
- * @see vpnsvc_get_if_index()
- * @see vpnsvc_get_if_name()
+ * @see vpnsvc_get_iface_fd()
+ * @see vpnsvc_get_iface_index()
+ * @see vpnsvc_get_iface_name()
  */
-int vpnsvc_init(const char* if_name, vpnsvc_h *handle);
+int vpnsvc_init(const char* iface_name, vpnsvc_h *handle);
 
 /**
  * @brief De-Initializes VPN interface.
@@ -125,7 +129,7 @@ int vpnsvc_deinit(vpnsvc_h handle);
  * @since_tizen 3.0
  * @param[in] handle    The VPN interface handle
  * @param[in] socket_fd The opened socket file descriptor
- * @param[in] dev_name  The network interface name (e.g., interface name such as eth0, ppp0, etc) through which the VPN is working
+ * @param[in] iface_name  The network interface name (e.g., interface name such as eth0, ppp0, etc) through which the VPN is working
  * @return 0 on success. otherwise, a negative error value.
  * @retval #VPNSVC_ERROR_NONE                  Success
  * @retval #VPNSVC_ERROR_INVALID_PARAMETER     Invalid parameter
@@ -133,10 +137,10 @@ int vpnsvc_deinit(vpnsvc_h handle);
  * @retval #VPNSVC_ERROR_IPC_FAILED            Cannot connect to service daemon
  * @retval #VPNSVC_ERROR_NOT_SUPPORTED         Not Supported
  */
-int vpnsvc_protect(vpnsvc_h handle, int socket_fd, const char* dev_name);
+int vpnsvc_protect(vpnsvc_h handle, int socket_fd, const char* iface_name);
 
 /**
- * @brief Reads the data event on VPN interface descriptor.
+ * @brief Waits for the read event on VPN interface descriptor, but no more than the indicated timeout in milliseconds.
  * @since_tizen 3.0
  * @param[in] handle      The VPN interface handle
  * @param[in] timeout_ms  The value of timeout (milliseconds)
@@ -171,12 +175,12 @@ int vpnsvc_write(vpnsvc_h handle, const char* data, size_t size);
  * @brief Blocks all traffics except specified allowing networks.
  * @since_tizen 3.0
  * @param[in] handle                  The VPN interface handle
- * @param[in] dest_vpn        	      Allowing networks over VPN interface.
- * @param[in] prefix_vpn              The prefix of VPN interface, netmask length (also called a prefix).
- * @param[in] nr_allow_routes_vpn     The number of allowing networks over VPN interface
- * @param[in] dest_orig       	      Allowing networks over the original interface.
- * @param[in] prefix_orig             The prefix of Original interface, netmask length (also called a prefix).
- * @param[in] nr_allow_routes_orig    The number of allowing networks over the original interface
+ * @param[in] routes_dest_vpn_addr    Destination address of the routes, the list of allowing networks over VPN interface (e.g., VPN interface such as tun0, etc).
+ * @param[in] routes_vpn_prefix       The prefix of VPN interface, netmask length (also called a prefix, e.g. 8, 16, 24, 32).
+ * @param[in] num_allow_routes_vpn    The number of allowing networks over VPN interface
+ * @param[in] routes_dest_orig_addr   Destination address of the routes, the list of allowing networks over the original interface (e.g., original interface such as eth0, wlan0, etc).
+ * @param[in] routes_orig_prefix      The prefix of Original interface, netmask length (also called a prefix, e.g. 8, 16, 24, 32).
+ * @param[in] num_allow_routes_orig   The number of allowing networks over the original interface
  * @return 0 on success. otherwise, a negative error value.
  * @retval #VPNSVC_ERROR_NONE                  Success
  * @retval #VPNSVC_ERROR_INVALID_PARAMETER     Invalid parameter
@@ -186,12 +190,12 @@ int vpnsvc_write(vpnsvc_h handle, const char* data, size_t size);
  * @see vpnsvc_unblock_networks()
  */
 int vpnsvc_block_networks(vpnsvc_h handle,
-		const char *dest_vpn[],
-		int prefix_vpn[],
-		size_t nr_allow_routes_vpn,
-		const char *dest_orig[],
-		int prefix_orig[],
-		size_t nr_allow_routes_orig);
+		const char *routes_dest_vpn_addr[],
+		int routes_vpn_prefix[],
+		size_t num_allow_routes_vpn,
+		const char *routes_dest_orig_addr[],
+		int routes_orig_prefix[],
+		size_t num_allow_routes_orig);
 
 /**
  * @brief Removes any restrictions imposed by vpnsvc_block_networks().
@@ -209,19 +213,19 @@ int vpnsvc_unblock_networks(vpnsvc_h handle);
  * @brief Gets the fd of the VPN interface.
  * @since_tizen 3.0
  * @param[in] handle The VPN interface handle
- * @param[out] if_fd The vpn interface fd
+ * @param[out] iface_fd The vpn interface fd
  * @return The fd value of VPN interface. Otherwise, a negative error value.
  * @retval #VPNSVC_ERROR_NONE                  Success
  * @retval #VPNSVC_ERROR_INVALID_PARAMETER     Invalid parameter
  * @retval #VPNSVC_ERROR_NOT_SUPPORTED         Not Supported
  */
-int vpnsvc_get_if_fd(vpnsvc_h handle, int* if_fd);
+int vpnsvc_get_iface_fd(vpnsvc_h handle, int* iface_fd);
 
 /**
  * @brief Gets the index of VPN interface.
  * @since_tizen 3.0
  * @param[in] handle The VPN interface handle
- * @param[out] if_index The VPN interface index
+ * @param[out] iface_index The VPN interface index
  * @return The index of the VPN interface. otherwise, a negative error value.
  * @retval #VPNSVC_ERROR_NONE                  Success
  * @retval #VPNSVC_ERROR_INVALID_PARAMETER     Invalid parameter
@@ -229,14 +233,14 @@ int vpnsvc_get_if_fd(vpnsvc_h handle, int* if_fd);
  * @pre Before calling this function, VPN interface should be initialized already.
  * @see vpnsvc_init()
  */
-int vpnsvc_get_if_index(vpnsvc_h handle, int* if_index);
+int vpnsvc_get_iface_index(vpnsvc_h handle, int* iface_index);
 
 /**
  * @brief Gets the name of VPN interface.
  * @since_tizen 3.0
- * @remarks The @a if_name should be released using free()
+ * @remarks The @a iface_name should be released using free()
  * @param[in] handle    The VPN interface handle
- * @param[out] if_name The name of VPN interface name
+ * @param[out] iface_name The name of VPN interface name
  * @return 0 on success. Otherwise, a negative error value.
  * @retval #VPNSVC_ERROR_NONE                  Success
  * @retval #VPNSVC_ERROR_INVALID_PARAMETER     Invalid parameter
@@ -244,7 +248,7 @@ int vpnsvc_get_if_index(vpnsvc_h handle, int* if_index);
  * @pre Before calling this function, VPN interface should be initialized already.
  * @see vpnsvc_init()
  */
-int vpnsvc_get_if_name(vpnsvc_h handle, char** if_name);
+int vpnsvc_get_iface_name(vpnsvc_h handle, char** iface_name);
 
 /**
  * @brief Sets the MTU of the VPN interface.
