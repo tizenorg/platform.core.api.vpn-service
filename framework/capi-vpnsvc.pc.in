@@ -3,7 +3,7 @@
 
 prefix=@PREFIX@
 exec_prefix=/usr
-libdir=/usr/lib
+libdir=@LIBDIR@
 includedir=/usr/include
 
 Name: @PC_NAME@

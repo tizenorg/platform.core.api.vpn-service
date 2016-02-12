@@ -81,7 +81,8 @@ MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
 		-DMAJORVER=${MAJORVER} \
         -DCMAKE_BUILD_TYPE=%{?build_type:%build_type}%{!?build_type:RELEASE} \
 		-DTIZEN_ENGINEER_MODE=%{?tizen_build_binary_release_type_eng:1}%{!?tizen_build_binary_release_type_eng:0} \
-        -DCMAKE_VERBOSE_MAKEFILE=ON
+        -DCMAKE_VERBOSE_MAKEFILE=ON \
+        -DLIB_INSTALL_DIR=%{_libdir}
 
 make %{?jobs:-j%jobs}
 

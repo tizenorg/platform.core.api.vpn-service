@@ -10,7 +10,7 @@ INCLUDE(FindPkgConfig)
 SET(CMAKE_INSTALL_PREFIX /usr)
 SET(PREFIX ${CMAKE_INSTALL_PREFIX})
 SET(EXEC_PREFIX ${PREFIX}/bin)
-SET(LIBDIR ${PREFIX}/lib)
+SET(LIBDIR ${LIB_INSTALL_DIR})
 SET(INCLUDEDIR ${PREFIX}/include)
 
 # If supported for the target machine, emit position-independent code,suitable
