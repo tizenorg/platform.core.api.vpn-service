@@ -8,6 +8,7 @@ URL:        N/A
 Source0:    %{name}-%{version}.tar.gz
 Source1:    vpnsvc-daemon.service
 Source2:    org.tizen.vpnsvc.service
+Source3:    dbus-vpnsvc-daemon.conf
 BuildRequires:	cmake
 BuildRequires:	pkgconfig(dlog)
 BuildRequires:  pkgconfig(dbus-glib-1)
@@ -94,6 +95,8 @@ cp LICENSE-Apache.v2.0 %{buildroot}/%{_datadir}/license/capi-vpnsvc
 #cp LICENSE.APLv2 %{buildroot}/usr/share/license/fpasmtztransport
 
 %make_install
+mkdir -p %{buildroot}%{_sysconfdir}/dbus-1/system.d
+install -m 0644 %{SOURCE3} %{buildroot}%{_sysconfdir}/dbus-1/system.d/vpnsvc-daemon.conf
 mkdir -p %{buildroot}%{_libdir}/systemd/system
 install -m 0644 %{SOURCE1} %{buildroot}%{_libdir}/systemd/system/vpnsvc-daemon.service
 mkdir -p %{buildroot}%{_datadir}/dbus-1/system-services
@@ -115,6 +118,7 @@ fi
 %manifest daemon/vpnsvc-daemon.manifest
 %attr(0755,root,root) %{_bindir}/vpnsvc-daemon
 %defattr(-,root,root,-)
+%{_sysconfdir}/dbus-1/system.d/*.conf
 %{_libdir}/systemd/system/vpnsvc-daemon.service
 %{_datadir}/dbus-1/system-services/org.tizen.vpnsvc.service
 
