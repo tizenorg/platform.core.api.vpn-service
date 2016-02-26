@@ -50,10 +50,6 @@ extern "C" {
   */
 #define VPNSVC_SESSION_STRING_LEN 32
 
-#ifndef TIZEN_ERROR_VPNSVC
-#define TIZEN_ERROR_VPNSVC -0x03200000
-#endif
-
 /**
   * @brief   Enumeration for VPN service error types.
   * @details Indicate formats of error type field
