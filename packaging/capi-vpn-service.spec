@@ -3,7 +3,7 @@ Summary:    VPN service library in TIZEN C API
 Version:    1.0.6
 Release:    1
 Group:      System/Network
-License:    Apache License, Version 2.0
+License:    Apache-2.0
 URL:        N/A
 Source0:    %{name}-%{version}.tar.gz
 Source1:    vpnsvc-daemon.service
@@ -91,7 +91,7 @@ make %{?jobs:-j%jobs}
 rm -rf %{buildroot}
 
 mkdir -p %{buildroot}/%{_datadir}/license
-cp LICENSE-Apache.v2.0 %{buildroot}/%{_datadir}/license/capi-vpnsvc
+cp LICENSE %{buildroot}/%{_datadir}/license/capi-vpnsvc
 #cp LICENSE.APLv2 %{buildroot}/usr/share/license/fpasmtztransport
 
 %make_install
