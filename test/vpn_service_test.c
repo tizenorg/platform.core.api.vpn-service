@@ -158,6 +158,12 @@ int test_vpnsvc_up()
 	else
 		printf("vpnsvc_up Succeed!\n");
 
+	free(routes[0]);
+	free(routes[1]);
+
+	routes[0] = NULL;
+	routes[1] = NULL;
+
 	return 0;
 }
 
@@ -230,6 +236,16 @@ int test_vpnsvc_block_networks()
 		printf("vpnsvc_block_networks failed!\n");
 	else
 		printf("vpnsvc_block_networks Succeed!\n");
+
+	free(block_nets[0]);
+	free(block_nets[1]);
+	free(allow_nets[0]);
+	free(allow_nets[1]);
+
+	block_nets[0] = NULL;
+	block_nets[1] = NULL;
+	allow_nets[0] = NULL;
+	allow_nets[1] = NULL;
 
 	return 0;
 

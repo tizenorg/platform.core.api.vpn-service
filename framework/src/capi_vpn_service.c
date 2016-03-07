@@ -30,6 +30,7 @@
 #define LOG_TAG "CAPI_VPNSVC"
 
 #define DBUS_REPLY_TIMEOUT (120 * 1000)
+#define BUF_SIZE_FOR_ERR 100
 
 GVariant *op = NULL;
 
@@ -334,6 +335,7 @@ EXPORT_API int vpnsvc_deinit(vpnsvc_h handle)
 	int result = VPNSVC_ERROR_NONE;
 	int dbus_result;
 	vpnsvc_tun_s *tun_s = NULL;
+	char buf[BUF_SIZE_FOR_ERR] = { 0 };
 
 	/* parameter check */
 	if (handle == NULL) {
@@ -364,7 +366,7 @@ EXPORT_API int vpnsvc_deinit(vpnsvc_h handle)
 		}
 
 		if (close(tun_s->fd) != 0) {
-			LOGE("tun fd close : %s", strerror(errno));
+			LOGE("tun fd close : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 			return VPNSVC_ERROR_IO_ERROR;
 		} else
 			LOGD("tun fd close success");
