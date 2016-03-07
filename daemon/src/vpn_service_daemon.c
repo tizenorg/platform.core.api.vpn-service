@@ -28,6 +28,7 @@
 #include <sys/ioctl.h>
 #include <sys/un.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "vpn_service_daemon.h"
 
@@ -35,6 +36,7 @@
 #undef LOG_TAG
 #endif
 #define LOG_TAG "VPNSVC_DAEMON"
+#define BUF_SIZE_FOR_ERR 100
 
 #define CONNMAN_SERVICE "net.connman"
 #define CONNMAN_INTERFACE_MANAGER "net.connman.Manager"
@@ -88,12 +90,13 @@ static int add_routes(char* iface_name, const char* routes[], int prefix[], size
 	struct sockaddr_in addr;
 	int sk;
 	unsigned int i = 0;
+	char buf[BUF_SIZE_FOR_ERR] = { 0 };
 
 	LOGD("Enter add_routes");
 
 	sk = socket(PF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
 	if (sk < 0) {
-		LOGE("socket failed : %s", strerror(errno));
+		LOGE("socket failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 		return VPNSVC_ERROR_IO_ERROR;
 	}
 
@@ -121,7 +124,7 @@ static int add_routes(char* iface_name, const char* routes[], int prefix[], size
 		rt.rt_dev = iface_name;
 
 		if (ioctl(sk, SIOCADDRT, &rt) < 0) {
-			LOGE("ioctl SIOCADDRT failed : %s", strerror(errno));
+			LOGE("ioctl SIOCADDRT failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 			close(sk);
 			return VPNSVC_ERROR_IO_ERROR;
 		}
@@ -239,7 +242,7 @@ static char *connman_get_items(GDBusConnection *connection, char *profile, const
 
 								tmp_items = (char *) malloc(strlen(items) + 1 + strlen(value) + 1);
 								if (items) {
-									sprintf(tmp_items, "%s,%s", items, value);
+									snprintf(tmp_items, strlen(tmp_items), "%s,%s", items, value);
 									free(items);
 									items = tmp_items;
 								}
@@ -328,7 +331,7 @@ static int add_dns_servers(char** dns_servers, size_t nr_dns, size_t total_dns_s
 	char *items = NULL;
 	char *org_items = NULL;
 	char *new_items = NULL;
-	unsigned int i;
+	unsigned int i = 0;
 
 	connman_connection_open();
 
@@ -354,8 +357,8 @@ static int add_dns_servers(char** dns_servers, size_t nr_dns, size_t total_dns_s
 		}
 		strncpy(items, org_items, strlen(org_items));
 		for (i = 0 ; i < nr_dns ; i++) {
-			strcat(items, ",");
-			strcat(items, dns_servers[i]);
+			strncat(items, ",", 1);
+			strncat(items, dns_servers[i], strlen(dns_servers[i]));
 		}
 		free(org_items);
 		org_items = NULL;
@@ -367,9 +370,9 @@ static int add_dns_servers(char** dns_servers, size_t nr_dns, size_t total_dns_s
 			return VPNSVC_ERROR_OUT_OF_MEMORY;
 		}
 		for (i = 0 ; i < nr_dns ; i++) {
-			strcat(items, dns_servers[i]);
+			strncat(items, dns_servers[i], strlen(dns_servers[i]));
 			if (i != nr_dns - 1)
-				strcat(items, ",");
+				strncat(items, ",", 1);
 		}
 	}
 
@@ -444,8 +447,8 @@ static int add_dns_suffix(const char* dns_suffix, size_t dns_suffix_len)
 			return VPNSVC_ERROR_OUT_OF_MEMORY;
 		}
 		strncpy(items, org_items, strlen(org_items));
-		strcat(items, ",");
-		strcat(items, dns_suffix);
+		strncat(items, ",", 1);
+		strncat(items, dns_suffix, dns_suffix_len);
 		free(org_items);
 		org_items = NULL;
 	} else {
@@ -455,7 +458,7 @@ static int add_dns_suffix(const char* dns_suffix, size_t dns_suffix_len)
 			LOGE("OOM while malloc");
 			return VPNSVC_ERROR_OUT_OF_MEMORY;
 		}
-		strcat(items, dns_suffix);
+		strncat(items, dns_suffix, dns_suffix_len);
 	}
 
 	if (items) {
@@ -613,12 +616,13 @@ static int get_interface_index(const char *iface_name)
 {
 	struct ifreq ifr;
 	int sk = 0;
+	char buf[BUF_SIZE_FOR_ERR] = { 0 };
 
 	LOGD("enter get_interface_index, iface_name : %s", iface_name);
 
 	sk = socket(PF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
 	if (sk < 0) {
-		LOGE("socket failed : %s", strerror(errno));
+		LOGE("socket failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 		return VPNSVC_ERROR_IO_ERROR;
 	}
 
@@ -629,7 +633,7 @@ static int get_interface_index(const char *iface_name)
 
 	/* get an interface name by ifindex */
 	if (ioctl(sk, SIOCGIFINDEX, &ifr) < 0) {
-		LOGE("ioctl SIOCGIFINDEX failed : %s", strerror(errno));
+		LOGE("ioctl SIOCGIFINDEX failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 		close(sk);
 		return VPNSVC_ERROR_IO_ERROR;
 	}
@@ -644,6 +648,7 @@ int vpn_daemon_init(const char* iface_name, size_t iface_name_len, int fd, vpnsv
 {
 	struct ifreq ifr;
 	size_t len = 0;
+	char buf[BUF_SIZE_FOR_ERR] = { 0 };
 
 	LOGD("enter vpn_daemon_init, iface_name : %s, iface_name_len : %d, fd : %d\n", iface_name, iface_name_len, fd);
 
@@ -663,19 +668,19 @@ int vpn_daemon_init(const char* iface_name, size_t iface_name_len, int fd, vpnsv
 	LOGD("before init, ifindex : %d", ifr.ifr_ifindex);
 
 	if (ioctl(fd, TUNSETIFF, (void *) &ifr) < 0) {
-		LOGE("TUNSETIFF Failed : %s", strerror(errno));
+		LOGE("TUNSETIFF Failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 		close(fd);
 		return VPNSVC_ERROR_IO_ERROR;
 	}
 
 	if (ioctl(fd, TUNSETOWNER, 5000) < 0) {
-		LOGE("TUNSETOWNER Failed : %s", strerror(errno));
+		LOGE("TUNSETOWNER Failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 		close(fd);
 		return VPNSVC_ERROR_IO_ERROR;
 	}
 
 	if (ioctl(fd, TUNSETPERSIST, 1) < 0) {
-		LOGE("TUNSETPERSIST Failed : %s", strerror(errno));
+		LOGE("TUNSETPERSIST Failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 		close(fd);
 		return VPNSVC_ERROR_IO_ERROR;
 	}
@@ -709,13 +714,14 @@ int vpn_daemon_deinit(const char* dev_name)
 int vpn_daemon_protect(int socket_fd, const char* dev_name)
 {
 	int ret = VPNSVC_ERROR_NONE;
+	char buf[BUF_SIZE_FOR_ERR] = { 0 };
 	LOGD("enter vpn_daemon_protect, socket : %d, dev_name : %s\n", socket_fd, dev_name);
 
 	ret = setsockopt(socket_fd, SOL_SOCKET, SO_BINDTODEVICE,
 					dev_name, strlen(dev_name));
 
 	if (ret < 0) {
-		LOGD("setsockopt failed : %d, %s", ret, strerror(errno));
+		LOGD("setsockopt failed : %d, %s", ret, strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 		ret = VPNSVC_ERROR_IO_ERROR;
 	} else {
 		ret = VPNSVC_ERROR_NONE;
@@ -734,6 +740,7 @@ int vpn_daemon_up(int iface_index, const char* local_ip, const char* remote_ip,
 	struct ifreq ifr_tun;
 	int sk;
 	int ret = VPNSVC_ERROR_NONE;
+	char buf[BUF_SIZE_FOR_ERR] = { 0 };
 
 	LOGD("enter vpn_daemon_up");
 
@@ -745,7 +752,7 @@ int vpn_daemon_up(int iface_index, const char* local_ip, const char* remote_ip,
 
 	sk = socket(PF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
 	if (sk < 0) {
-		LOGE("socket failed : %s", strerror(errno));
+		LOGE("socket failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 		return VPNSVC_ERROR_IO_ERROR;
 	}
 
@@ -754,7 +761,7 @@ int vpn_daemon_up(int iface_index, const char* local_ip, const char* remote_ip,
 
 	/* get an interface name by ifindex */
 	if (ioctl(sk, SIOCGIFNAME, &ifr_tun) < 0) {
-		LOGE("ioctl SIOCGIFNAME failed : %s", strerror(errno));
+		LOGE("ioctl SIOCGIFNAME failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 		close(sk);
 		return VPNSVC_ERROR_IO_ERROR;
 	}
@@ -765,7 +772,7 @@ int vpn_daemon_up(int iface_index, const char* local_ip, const char* remote_ip,
 	local_addr.sin_family = AF_INET;
 	memcpy(&ifr_tun.ifr_addr, &local_addr, sizeof(ifr_tun.ifr_addr));
 	if (ioctl(sk, SIOCSIFADDR, &ifr_tun) < 0) {
-		LOGE("ioctl SIOCSIFADDR failed : %s", strerror(errno));
+		LOGE("ioctl SIOCSIFADDR failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 		close(sk);
 		return VPNSVC_ERROR_IO_ERROR;
 	}
@@ -776,14 +783,14 @@ int vpn_daemon_up(int iface_index, const char* local_ip, const char* remote_ip,
 	remote_addr.sin_family = AF_INET;
 	memcpy(&ifr_tun.ifr_dstaddr, &remote_addr, sizeof(ifr_tun.ifr_dstaddr));
 	if (ioctl(sk, SIOCSIFDSTADDR, &ifr_tun) < 0) {
-		LOGE("ioctl SIOCSIFDSTADDR failed : %s", strerror(errno));
+		LOGE("ioctl SIOCSIFDSTADDR failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 		close(sk);
 		return VPNSVC_ERROR_IO_ERROR;
 	}
 
 	/* set the flags for vpn up */
 	if (ioctl(sk, SIOCGIFFLAGS, &ifr_tun) < 0) {
-		LOGE("ioctl SIOCGIFFLAGS failed : %s", strerror(errno));
+		LOGE("ioctl SIOCGIFFLAGS failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 		close(sk);
 		return VPNSVC_ERROR_IO_ERROR;
 	}
@@ -792,14 +799,14 @@ int vpn_daemon_up(int iface_index, const char* local_ip, const char* remote_ip,
 	ifr_tun.ifr_flags |= IFF_RUNNING;
 
 	if (ioctl(sk, SIOCSIFFLAGS, &ifr_tun) < 0)  {
-		LOGE("ioctl SIOCSIFFLAGS failed : %s", strerror(errno));
+		LOGE("ioctl SIOCSIFFLAGS failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 		close(sk);
 		return VPNSVC_ERROR_IO_ERROR;
 	}
 
 	/* mtu setting */
 	if (ioctl(sk, SIOCGIFMTU, &ifr_tun) < 0) {
-		LOGE("ioctl SIOCGIFMTU failed : %s", strerror(errno));
+		LOGE("ioctl SIOCGIFMTU failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 		close(sk);
 		return VPNSVC_ERROR_IO_ERROR;
 	}
@@ -807,7 +814,7 @@ int vpn_daemon_up(int iface_index, const char* local_ip, const char* remote_ip,
 	if (mtu > 0 && ifr_tun.ifr_mtu != (int)mtu) {
 		ifr_tun.ifr_mtu = mtu;
 		if (ioctl(sk, SIOCSIFMTU, &ifr_tun) < 0) {
-			LOGE("ioctl SIOCSIFMTU failed : %s", strerror(errno));
+			LOGE("ioctl SIOCSIFMTU failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 			close(sk);
 			return VPNSVC_ERROR_IO_ERROR;
 		}
@@ -850,10 +857,11 @@ int vpn_daemon_down(int iface_index)
 	struct ifreq ifr, addr_ifr;
 	struct sockaddr_in *addr = NULL;
 	int sk;
+	char buf[BUF_SIZE_FOR_ERR] = { 0 };
 
 	sk = socket(PF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
 	if (sk < 0) {
-		LOGE("socket failed : %s", strerror(errno));
+		LOGE("socket failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 		return VPNSVC_ERROR_IO_ERROR;
 	}
 
@@ -861,13 +869,13 @@ int vpn_daemon_down(int iface_index)
 	ifr.ifr_ifindex = iface_index;
 
 	if (ioctl(sk, SIOCGIFNAME, &ifr) < 0) {
-		LOGE("ioctl SIOCGIFNAME failed : %s", strerror(errno));
+		LOGE("ioctl SIOCGIFNAME failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 		close(sk);
 		return VPNSVC_ERROR_IO_ERROR;
 	}
 
 	if (ioctl(sk, SIOCGIFFLAGS, &ifr) < 0) {
-		LOGE("ioctl SIOCGIFFLAGS failed : %s", strerror(errno));
+		LOGE("ioctl SIOCGIFFLAGS failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 		close(sk);
 		return VPNSVC_ERROR_IO_ERROR;
 	}
@@ -877,7 +885,7 @@ int vpn_daemon_down(int iface_index)
 	addr = (struct sockaddr_in *)&addr_ifr.ifr_addr;
 	addr->sin_family = AF_INET;
 	if (ioctl(sk, SIOCSIFADDR, &addr_ifr) < 0)
-		LOGD("ioctl SIOCSIFADDR (could not clear IP address) failed : %s", strerror(errno));
+		LOGD("ioctl SIOCSIFADDR (could not clear IP address) failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 
 	if (!(ifr.ifr_flags & IFF_UP)) {
 		LOGD("Interface already down");
@@ -887,7 +895,7 @@ int vpn_daemon_down(int iface_index)
 
 	ifr.ifr_flags = (ifr.ifr_flags & ~IFF_UP) | IFF_DYNAMIC;
 	if (ioctl(sk, SIOCSIFFLAGS, &ifr) < 0) {
-		LOGE("ioctl SIOCSIFFLAGS (interface down) failed : %s", strerror(errno));
+		LOGE("ioctl SIOCSIFFLAGS (interface down) failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 		close(sk);
 		return VPNSVC_ERROR_IO_ERROR;
 	}
