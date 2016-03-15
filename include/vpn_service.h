@@ -108,11 +108,15 @@ int vpnsvc_init(const char* iface_name, vpnsvc_h *handle);
 /**
  * @brief De-Initializes VPN interface.
  * @since_tizen 3.0
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/vpnservice \n
+ *            %http://tizen.org/privilege/internet
  * @param[in] handle The VPN interface handle
  * @return 0 on success. otherwise, a negative error value.
  * @retval #VPNSVC_ERROR_NONE                  Success
  * @retval #VPNSVC_ERROR_INVALID_PARAMETER     Invalid parameter
  * @retval #VPNSVC_ERROR_IPC_FAILED            Cannot connect to service daemon
+ * @retval #VPNSVC_ERROR_PERMISSION_DENIED     Permission Denied
  * @retval #VPNSVC_ERROR_NOT_SUPPORTED         Not Supported
  * @pre Before calling this function, VPN interface should be initialized already.
  * @see vpnsvc_init()
@@ -123,6 +127,9 @@ int vpnsvc_deinit(vpnsvc_h handle);
  * @brief Protect a socket from VPN connections.
  * @details After protecting, data sent through this socket will go directly to the underlying network.
  * @since_tizen 3.0
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/vpnservice \n
+ *            %http://tizen.org/privilege/internet
  * @param[in] handle    The VPN interface handle
  * @param[in] socket_fd The opened socket file descriptor
  * @param[in] iface_name  The network interface name (e.g., interface name such as eth0, ppp0, etc) through which the VPN is working
@@ -131,6 +138,7 @@ int vpnsvc_deinit(vpnsvc_h handle);
  * @retval #VPNSVC_ERROR_INVALID_PARAMETER     Invalid parameter
  * @retval #VPNSVC_ERROR_IO_ERROR              I/O Error (e.g. socket I/O error)
  * @retval #VPNSVC_ERROR_IPC_FAILED            Cannot connect to service daemon
+ * @retval #VPNSVC_ERROR_PERMISSION_DENIED     Permission Denied
  * @retval #VPNSVC_ERROR_NOT_SUPPORTED         Not Supported
  */
 int vpnsvc_protect(vpnsvc_h handle, int socket_fd, const char* iface_name);
@@ -170,6 +178,9 @@ int vpnsvc_write(vpnsvc_h handle, const char* data, size_t size);
 /**
  * @brief Blocks all traffics except specified allowing networks.
  * @since_tizen 3.0
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/vpnservice \n
+ *            %http://tizen.org/privilege/internet
  * @param[in] handle                  The VPN interface handle
  * @param[in] routes_dest_vpn_addr    Destination address of the routes, the list of allowing networks over VPN interface (e.g., VPN interface such as tun0, etc).
  * @param[in] routes_vpn_prefix       The prefix of VPN interface, netmask length (also called a prefix, e.g. 8, 16, 24, 32).
@@ -196,11 +207,15 @@ int vpnsvc_block_networks(vpnsvc_h handle,
 /**
  * @brief Removes any restrictions imposed by vpnsvc_block_networks().
  * @since_tizen 3.0
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/vpnservice \n
+ *            %http://tizen.org/privilege/internet
  * @param[in] handle The VPN interface handle
  * @return 0 on success. otherwise, a negative error value.
  * @retval #VPNSVC_ERROR_NONE                  Success
  * @retval #VPNSVC_ERROR_INVALID_PARAMETER     Invalid parameter
  * @retval #VPNSVC_ERROR_IPC_FAILED            Cannot connect to service daemon
+ * @retval #VPNSVC_ERROR_PERMISSION_DENIED     Permission Denied
  * @retval #VPNSVC_ERROR_NOT_SUPPORTED         Not Supported
  */
 int vpnsvc_unblock_networks(vpnsvc_h handle);
@@ -213,6 +228,7 @@ int vpnsvc_unblock_networks(vpnsvc_h handle);
  * @return The fd value of VPN interface. Otherwise, a negative error value.
  * @retval #VPNSVC_ERROR_NONE                  Success
  * @retval #VPNSVC_ERROR_INVALID_PARAMETER     Invalid parameter
+ * @retval #VPNSVC_ERROR_PERMISSION_DENIED     Permission Denied
  * @retval #VPNSVC_ERROR_NOT_SUPPORTED         Not Supported
  */
 int vpnsvc_get_iface_fd(vpnsvc_h handle, int* iface_fd);
