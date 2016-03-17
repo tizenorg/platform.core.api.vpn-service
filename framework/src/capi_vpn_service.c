@@ -41,19 +41,19 @@ int _vpnsvc_check_feature_supported(const char *feature_name)
 {
 	if (is_feature_checked) {
 		if (!feature_supported) {
-			LOGE("%s feature is disabled", feature_name);
-			return VPNSVC_ERROR_NOT_SUPPORTED;
+			LOGE("%s feature is disabled", feature_name); //LCOV_EXCL_LINE
+			return VPNSVC_ERROR_NOT_SUPPORTED; //LCOV_EXCL_LINE
 		}
 	} else {
 		if (!system_info_get_platform_bool(feature_name, &feature_supported)) {
 			is_feature_checked = true;
 			if (!feature_supported) {
-				LOGE("%s feature is disabled", feature_name);
-				return VPNSVC_ERROR_NOT_SUPPORTED;
+				LOGE("%s feature is disabled", feature_name); //LCOV_EXCL_LINE
+				return VPNSVC_ERROR_NOT_SUPPORTED; //LCOV_EXCL_LINE
 			}
 		} else {
-			LOGE("Error - Feature getting from System Info");
-			return VPNSVC_ERROR_IO_ERROR;
+			LOGE("Error - Feature getting from System Info"); //LCOV_EXCL_LINE
+			return VPNSVC_ERROR_IO_ERROR; //LCOV_EXCL_LINE
 		}
 	}
 
@@ -66,8 +66,8 @@ static void _vpnsvc_init_vpnsvc_tun_s(vpnsvc_tun_s **s)
 
 	if (s == NULL) return;
 	if (*s != NULL) {
-		LOGE("Can't Initialize vpnsvc_tun_s: %p", *s);
-		return;
+		LOGE("Can't Initialize vpnsvc_tun_s: %p", *s); //LCOV_EXCL_LINE
+		return; //LCOV_EXCL_LINE
 	}
 	*s = (vpnsvc_tun_s*)g_malloc0(sizeof(vpnsvc_tun_s));
 
@@ -81,8 +81,8 @@ static void _vpnsvc_init_vpnsvc_tun_s(vpnsvc_tun_s **s)
 
 		connection = g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, &error);
 		if (error != NULL) {
-			LOGE("Error creating Connection: %s", error->message);
-			g_error_free(error);
+			LOGE("Error creating Connection: %s", error->message); //LCOV_EXCL_LINE
+			g_error_free(error); //LCOV_EXCL_LINE
 		} else {
 			LOGD("Created Connection: %p", connection);
 			(*s)->connection = connection;
@@ -126,9 +126,9 @@ GVariant *_vpnsvc_invoke_dbus_method(GDBusConnection *connection,
 	LOGD("Method Call() dest=%s path=%s iface=%s method=%s", dest, path, interface_name, method);
 
 	if (connection == NULL) {
-		LOGD("GDBusconnection is NULL");
-		*dbus_error = VPNSVC_ERROR_IO_ERROR;
-		return reply;
+		LOGD("GDBusconnection is NULL"); //LCOV_EXCL_LINE
+		*dbus_error = VPNSVC_ERROR_IO_ERROR; //LCOV_EXCL_LINE
+		return reply; //LCOV_EXCL_LINE
 	}
 
 	reply = g_dbus_connection_call_sync(connection,
@@ -145,13 +145,13 @@ GVariant *_vpnsvc_invoke_dbus_method(GDBusConnection *connection,
 
 	if (reply == NULL) {
 		if (error != NULL) {
-			LOGE("g_dbus_connection_call_sync() failed"
+			LOGE("g_dbus_connection_call_sync() failed" //LCOV_EXCL_LINE
 					"error [%d: %s]", error->code, error->message);
-			*dbus_error = VPNSVC_ERROR_IO_ERROR;
-			g_error_free(error);
+			*dbus_error = VPNSVC_ERROR_IO_ERROR; //LCOV_EXCL_LINE
+			g_error_free(error); //LCOV_EXCL_LINE
 		} else {
-			LOGE("g_dbus_connection_call_sync() failed");
-			*dbus_error = VPNSVC_ERROR_IPC_FAILED;
+			LOGE("g_dbus_connection_call_sync() failed"); //LCOV_EXCL_LINE
+			*dbus_error = VPNSVC_ERROR_IPC_FAILED; //LCOV_EXCL_LINE
 		}
 
 		return NULL;
@@ -172,24 +172,24 @@ GVariant *_vpnsvc_invoke_dbus_method_with_fd(GDBusConnection *connection,
 	LOGD("Method Call() dest=%s path=%s iface=%s method=%s fd=%d", dest, path, interface_name, method, fd);
 
 	if (connection == NULL) {
-		LOGD("GDBusconnection is NULL");
-		*dbus_error = VPNSVC_ERROR_IO_ERROR;
-		return reply;
+		LOGD("GDBusconnection is NULL"); //LCOV_EXCL_LINE
+		*dbus_error = VPNSVC_ERROR_IO_ERROR; //LCOV_EXCL_LINE
+		return reply; //LCOV_EXCL_LINE
 	}
 
 	/* Setting the fd_list */
 	fd_list = g_unix_fd_list_new();
 	if (fd_list == NULL) {
-		LOGE("g_unix_fd_list_new() failed!");
-		return NULL;
+		LOGE("g_unix_fd_list_new() failed!"); //LCOV_EXCL_LINE
+		return NULL; //LCOV_EXCL_LINE
 	}
 	g_unix_fd_list_append(fd_list, fd, &error);
 	if (error != NULL) {
-		LOGE("g_unix_fd_list_append() failed"
+		LOGE("g_unix_fd_list_append() failed" //LCOV_EXCL_LINE
 				"error [%d: %s]", error->code, error->message);
-		*dbus_error = VPNSVC_ERROR_IO_ERROR;
-		g_error_free(error);
-		return NULL;
+		*dbus_error = VPNSVC_ERROR_IO_ERROR; //LCOV_EXCL_LINE
+		g_error_free(error); //LCOV_EXCL_LINE
+		return NULL; //LCOV_EXCL_LINE
 	}
 
 	reply = g_dbus_connection_call_with_unix_fd_list_sync(connection,
@@ -208,13 +208,13 @@ GVariant *_vpnsvc_invoke_dbus_method_with_fd(GDBusConnection *connection,
 
 	if (reply == NULL) {
 		if (error != NULL) {
-			LOGE("g_dbus_connection_call_sync() failed"
+			LOGE("g_dbus_connection_call_sync() failed" //LCOV_EXCL_LINE
 					"error [%d: %s]", error->code, error->message);
-			*dbus_error = VPNSVC_ERROR_IO_ERROR;
-			g_error_free(error);
+			*dbus_error = VPNSVC_ERROR_IO_ERROR; //LCOV_EXCL_LINE
+			g_error_free(error); //LCOV_EXCL_LINE
 		} else {
-			LOGE("g_dbus_connection_call_sync() failed");
-			*dbus_error = VPNSVC_ERROR_IPC_FAILED;
+			LOGE("g_dbus_connection_call_sync() failed"); //LCOV_EXCL_LINE
+			*dbus_error = VPNSVC_ERROR_IPC_FAILED; //LCOV_EXCL_LINE
 		}
 
 		return NULL;
@@ -258,9 +258,9 @@ EXPORT_API int vpnsvc_init(const char* iface_name, vpnsvc_h *handle)
 									&dbus_result);
 
 	if (op == NULL) {
-		_vpnsvc_deinit_vpnsvc_tun_s(tmp_s);
-		LOGD("Service [%s] Start Failed!", VPNSVC_DBUS_SERVICE_NAME);
-		return VPNSVC_ERROR_IPC_FAILED;
+		_vpnsvc_deinit_vpnsvc_tun_s(tmp_s); //LCOV_EXCL_LINE
+		LOGD("Service [%s] Start Failed!", VPNSVC_DBUS_SERVICE_NAME); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_IPC_FAILED; //LCOV_EXCL_LINE
 	} else {
 		unsigned int status = 0;
 		g_variant_get(op, "(u)", &status);
@@ -269,20 +269,20 @@ EXPORT_API int vpnsvc_init(const char* iface_name, vpnsvc_h *handle)
 		} else if (2 == status) {	/* DBUS_START_REPLY_ALREADY_RUNNING */
 			LOGD("Service [%s] Already Running!", VPNSVC_DBUS_SERVICE_NAME);
 		} else {
-			LOGD("Service [%s] Not Started! Status[%d]", VPNSVC_DBUS_SERVICE_NAME, status);
-			g_variant_unref(op);
-			op = NULL;
-			_vpnsvc_deinit_vpnsvc_tun_s(tmp_s);
-			return VPNSVC_ERROR_IO_ERROR;
+			LOGD("Service [%s] Not Started! Status[%d]", VPNSVC_DBUS_SERVICE_NAME, status); //LCOV_EXCL_LINE
+			g_variant_unref(op); //LCOV_EXCL_LINE
+			op = NULL; //LCOV_EXCL_LINE
+			_vpnsvc_deinit_vpnsvc_tun_s(tmp_s); //LCOV_EXCL_LINE
+			return VPNSVC_ERROR_IO_ERROR; //LCOV_EXCL_LINE
 		}
 		g_variant_unref(op);
 		op = NULL;
 	}
 
 	if ((iface_fd = open("/dev/net/tun", O_RDWR)) < 0) {
-		LOGE("tun device open fail\n");
-		_vpnsvc_deinit_vpnsvc_tun_s(tmp_s);
-		return VPNSVC_ERROR_IO_ERROR;
+		LOGE("tun device open fail\n"); //LCOV_EXCL_LINE
+		_vpnsvc_deinit_vpnsvc_tun_s(tmp_s); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_IO_ERROR; //LCOV_EXCL_LINE
 	}
 
 	LOGD("client iface_fd : %d", iface_fd);
@@ -297,18 +297,18 @@ EXPORT_API int vpnsvc_init(const char* iface_name, vpnsvc_h *handle)
 							&dbus_result);
 
 	if (op == NULL) {
-		close(iface_fd);
-		_vpnsvc_deinit_vpnsvc_tun_s(tmp_s);
-		return VPNSVC_ERROR_IPC_FAILED;
+		close(iface_fd); //LCOV_EXCL_LINE
+		_vpnsvc_deinit_vpnsvc_tun_s(tmp_s); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_IPC_FAILED; //LCOV_EXCL_LINE
 	} else {
 		int tmp_index;
 		char* tmp_name;
 
 		g_variant_get(op, "(iis)", &result, &tmp_index, &tmp_name);
 		if (result != VPNSVC_ERROR_NONE) {
-			LOGE("vpnsvc_init() failed");
-			_vpnsvc_deinit_vpnsvc_tun_s(tmp_s);
-			result = VPNSVC_ERROR_IPC_FAILED;
+			LOGE("vpnsvc_init() failed"); //LCOV_EXCL_LINE
+			_vpnsvc_deinit_vpnsvc_tun_s(tmp_s); //LCOV_EXCL_LINE
+			result = VPNSVC_ERROR_IPC_FAILED; //LCOV_EXCL_LINE
 		} else {
 			LOGD("vpnsvc_init() succeed");
 			tmp_s->fd = iface_fd;	/* client fd must be set */
@@ -339,8 +339,8 @@ EXPORT_API int vpnsvc_deinit(vpnsvc_h handle)
 
 	/* parameter check */
 	if (handle == NULL) {
-		LOGE("handle is a NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("handle is a NULL"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 	tun_s = (vpnsvc_tun_s*)handle;
 
@@ -356,18 +356,18 @@ EXPORT_API int vpnsvc_deinit(vpnsvc_h handle)
 									&dbus_result);
 
 		if (op == NULL) {
-			return VPNSVC_ERROR_IPC_FAILED;
+			return VPNSVC_ERROR_IPC_FAILED; //LCOV_EXCL_LINE
 		} else {
 			g_variant_get(op, "(i)", &result);
 			if (result != VPNSVC_ERROR_NONE)
-				LOGE("vpn_deinit() failed");
+				LOGE("vpn_deinit() failed"); //LCOV_EXCL_LINE
 			else
 				LOGD("vpn_deinit() succeed");
 		}
 
 		if (close(tun_s->fd) != 0) {
-			LOGE("tun fd close : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
-			return VPNSVC_ERROR_IO_ERROR;
+			LOGE("tun fd close : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR)); //LCOV_EXCL_LINE
+			return VPNSVC_ERROR_IO_ERROR; //LCOV_EXCL_LINE
 		} else
 			LOGD("tun fd close success");
 
@@ -388,16 +388,16 @@ EXPORT_API int vpnsvc_protect(vpnsvc_h handle, int socket_fd, const char* iface_
 
 	/* parameter check */
 	if (handle == NULL) {
-		LOGE("handle is a NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("handle is a NULL"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 	tun_s = (vpnsvc_tun_s*)handle;
 
 	LOGD("enter vpnsvc_protect, socket : %d, dev_name : %s", socket_fd, iface_name);
 
 	if (tun_s->connection == NULL) {
-		LOGE("Connection Object is NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("Connection Object is NULL"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	/* call vpnsvc_protect */
@@ -411,12 +411,12 @@ EXPORT_API int vpnsvc_protect(vpnsvc_h handle, int socket_fd, const char* iface_
 						&dbus_result);
 
 	if (op == NULL) {
-		return VPNSVC_ERROR_IPC_FAILED;
+		return VPNSVC_ERROR_IPC_FAILED; //LCOV_EXCL_LINE
 	} else {
 		g_variant_get(op, "(i)", &result);
 
 		if (result != VPNSVC_ERROR_NONE)
-			LOGE("vpn_protect() failed");
+			LOGE("vpn_protect() failed"); //LCOV_EXCL_LINE
 		else
 			LOGD("vpn_protect() succeed");
 	}
@@ -441,24 +441,24 @@ EXPORT_API int vpnsvc_up(vpnsvc_h handle, const char* local_ip, const char* remo
 
 	/* parameter check */
 	if (handle == NULL) {
-		LOGE("handle is a NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("handle is a NULL"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 	tun_s = (vpnsvc_tun_s*)handle;
 
 	LOGD("enter vpnsvc_up");
 
 	if (tun_s->index <= 0) {
-		LOGE("invalid handle");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("invalid handle"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	} else if (tun_s->connection == NULL) {
-		LOGE("Connection Object is NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("Connection Object is NULL"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	if (local_ip == NULL || remote_ip == NULL) {
-		LOGE("local and remote ip are invalid");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("local and remote ip are invalid"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	LOGD("iface_index %d", tun_s->index);
@@ -468,8 +468,8 @@ EXPORT_API int vpnsvc_up(vpnsvc_h handle, const char* local_ip, const char* remo
 	g_variant_builder_init(&route_builder, G_VARIANT_TYPE("a{si}"));
 	for (i = 0 ; i < num_routes ; i++) {
 		if (strlen(routes_dest_add[i]) <= 0) {
-			LOGE("invalid dest[%d]", i);
-			return VPNSVC_ERROR_INVALID_PARAMETER;
+			LOGE("invalid dest[%d]", i); //LCOV_EXCL_LINE
+			return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 		}
 		g_variant_builder_add(&route_builder, "{si}", routes_dest_add[i], routes_prefix[i]);
 		LOGD("dest[%d] : %s", i, routes_dest_add[i]);
@@ -481,8 +481,8 @@ EXPORT_API int vpnsvc_up(vpnsvc_h handle, const char* local_ip, const char* remo
 	g_variant_builder_init(&dns_builder, G_VARIANT_TYPE("as"));
 	for (i = 0 ; i < num_dns_servers ; i++) {
 		if (strlen(dns_servers[i]) <= 0) {
-			LOGE("invalid dns_servers[%d]", i);
-			return VPNSVC_ERROR_INVALID_PARAMETER;
+			LOGE("invalid dns_servers[%d]", i); //LCOV_EXCL_LINE
+			return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 		}
 		LOGD("dns_servers[%d] : %s", i, dns_servers[i]);
 		g_variant_builder_add(&dns_builder, "s", dns_servers[i]);
@@ -502,11 +502,11 @@ EXPORT_API int vpnsvc_up(vpnsvc_h handle, const char* local_ip, const char* remo
 								&dbus_result);
 
 	if (op == NULL) {
-		return VPNSVC_ERROR_IPC_FAILED;
+		return VPNSVC_ERROR_IPC_FAILED; //LCOV_EXCL_LINE
 	} else {
 		g_variant_get(op, "(i)", &result);
 		if (result != VPNSVC_ERROR_NONE)
-			LOGE("vpn_up() failed");
+			LOGE("vpn_up() failed"); //LCOV_EXCL_LINE
 		else
 			LOGD("vpn_up() succeed");
 	}
@@ -524,22 +524,22 @@ EXPORT_API int vpnsvc_down(vpnsvc_h handle)
 
 	/* parameter check */
 	if (handle == NULL) {
-		LOGE("handle is a NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("handle is a NULL"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 	tun_s = (vpnsvc_tun_s*)handle;
 
 	LOGD("enter vpnsvc_down");
 
 	if (tun_s == NULL) {
-		LOGE("handle is a NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("handle is a NULL"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	} else if (tun_s->index <= 0) {
-		LOGE("invalid handle");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("invalid handle"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	} else if (tun_s->connection == NULL) {
-		LOGE("Connection Object is NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("Connection Object is NULL"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	op = _vpnsvc_invoke_dbus_method(tun_s->connection,
@@ -551,11 +551,11 @@ EXPORT_API int vpnsvc_down(vpnsvc_h handle)
 								&dbus_result);
 
 	if (op == NULL) {
-		return VPNSVC_ERROR_IPC_FAILED;
+		return VPNSVC_ERROR_IPC_FAILED; //LCOV_EXCL_LINE
 	} else {
 		g_variant_get(op, "(i)", &result);
 		if (result != VPNSVC_ERROR_NONE)
-			LOGE("vpn_down() failed");
+			LOGE("vpn_down() failed"); //LCOV_EXCL_LINE
 		else
 			LOGD("vpn_down() succeed");
 	}
@@ -576,14 +576,14 @@ EXPORT_API int vpnsvc_read(vpnsvc_h handle, int timeout_ms)
 
 	/* parameter check */
 	if (handle == NULL) {
-		LOGE("handle is a NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("handle is a NULL"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 	tun_s = (vpnsvc_tun_s*)handle;
 
 	if (tun_s->fd <= 0) {
-		LOGE("invalid handle");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("invalid handle"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	/* listen for events */
@@ -596,11 +596,11 @@ EXPORT_API int vpnsvc_read(vpnsvc_h handle, int timeout_ms)
 		LOGD("Data is available now.\n");
 		ret = VPNSVC_ERROR_NONE;
 	} else if (retVal == 0) {
-		LOGD("No data within %d ms\n", timeout_ms);
-		ret = VPNSVC_ERROR_TIMEOUT;
+		LOGD("No data within %d ms\n", timeout_ms); //LCOV_EXCL_LINE
+		ret = VPNSVC_ERROR_TIMEOUT; //LCOV_EXCL_LINE
 	} else {
-		LOGE("select failed\n");
-		ret = VPNSVC_ERROR_IO_ERROR;
+		LOGE("select failed\n"); //LCOV_EXCL_LINE
+		ret = VPNSVC_ERROR_IO_ERROR; //LCOV_EXCL_LINE
 	}
 
 	return ret;
@@ -615,14 +615,14 @@ EXPORT_API int vpnsvc_write(vpnsvc_h handle, const char* data, size_t size)
 
 	/* parameter check */
 	if (handle == NULL) {
-		LOGE("handle is a NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("handle is a NULL"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 	tun_s = (vpnsvc_tun_s*)handle;
 
 	if (tun_s->fd <= 0) {
-		LOGE("invalid handle");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("invalid handle"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	return write(tun_s->fd, data, size);
@@ -650,16 +650,16 @@ EXPORT_API int vpnsvc_block_networks(vpnsvc_h handle,
 
 	/* parameter check */
 	if (handle == NULL) {
-		LOGE("handle is a NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("handle is a NULL"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 	tun_s = (vpnsvc_tun_s*)handle;
 
 	LOGD("enter vpnsvc_block_networks");
 
 	if (tun_s->connection == NULL) {
-		LOGE("Connection Object is NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("Connection Object is NULL"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 	/* make a route parameter for allowed VPN interface routes */
 	g_variant_builder_init(&nets_builder, G_VARIANT_TYPE("a{si}"));
@@ -689,11 +689,11 @@ EXPORT_API int vpnsvc_block_networks(vpnsvc_h handle,
 								&dbus_result);
 
 	if (op == NULL) {
-		return VPNSVC_ERROR_IPC_FAILED;
+		return VPNSVC_ERROR_IPC_FAILED; //LCOV_EXCL_LINE
 	} else {
 		g_variant_get(op, "(i)", &result);
 		if (result != VPNSVC_ERROR_NONE)
-			LOGE("vpn_block_networks() failed");
+			LOGE("vpn_block_networks() failed"); //LCOV_EXCL_LINE
 		else
 			LOGD("vpn_block_networks() succeed");
 	}
@@ -711,19 +711,19 @@ EXPORT_API int vpnsvc_unblock_networks(vpnsvc_h handle)
 
 	/* parameter check */
 	if (handle == NULL) {
-		LOGE("handle is a NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("handle is a NULL"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 	tun_s = (vpnsvc_tun_s*)handle;
 
 	LOGD("enter vpnsvc_unblock_networks");
 
 	if (tun_s == NULL) {
-		LOGE("handle is a NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("handle is a NULL"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	} else if (tun_s->connection == NULL) {
-		LOGE("Connection Object is NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("Connection Object is NULL"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	op = _vpnsvc_invoke_dbus_method(tun_s->connection,
@@ -735,11 +735,11 @@ EXPORT_API int vpnsvc_unblock_networks(vpnsvc_h handle)
 									&dbus_result);
 
 	if (op == NULL) {
-		return VPNSVC_ERROR_IPC_FAILED;
+		return VPNSVC_ERROR_IPC_FAILED; //LCOV_EXCL_LINE
 	} else {
 		g_variant_get(op, "(i)", &result);
 		if (result != VPNSVC_ERROR_NONE)
-			LOGE("vpn_unblock_networks() failed");
+			LOGE("vpn_unblock_networks() failed"); //LCOV_EXCL_LINE
 		else
 			LOGD("vpn_unblock_networks() succeed");
 	}
@@ -755,14 +755,14 @@ EXPORT_API int vpnsvc_get_iface_fd(vpnsvc_h handle, int* iface_fd)
 
 	/* parameter check */
 	if (handle == NULL || iface_fd == NULL) {
-		LOGE("Invalid parameter");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("Invalid parameter"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 	tun_s = (vpnsvc_tun_s*)handle;
 
 	if (tun_s->fd <= 0) {
-		LOGE("invalid handle");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("invalid handle"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	*iface_fd = (int)(tun_s->fd);
@@ -778,15 +778,15 @@ EXPORT_API int vpnsvc_get_iface_index(vpnsvc_h handle, int* iface_index)
 
 	/* parameter check */
 	if (handle == NULL || iface_index == NULL) {
-		LOGE("Invalid parameter");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("Invalid parameter"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	tun_s = (vpnsvc_tun_s*)handle;
 
 	if (tun_s->index <= 0) {
-		LOGE("invalid handle");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("invalid handle"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	*iface_index = (int)(tun_s->index);
@@ -803,19 +803,19 @@ EXPORT_API int vpnsvc_get_iface_name(vpnsvc_h handle, char** iface_name)
 
 	/* parameter check */
 	if (handle == NULL) {
-		LOGE("handle is a NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("handle is a NULL"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 	tun_s = (vpnsvc_tun_s*)handle;
 
 	if (strlen(tun_s->name) <= 0) {
-		LOGE("invalid handle");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("invalid handle"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	if (iface_name == NULL) {
-		LOGE("tun name string is NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("tun name string is NULL"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	g_strlcpy(la_iface_name, tun_s->name, VPNSVC_VPN_IFACE_NAME_LEN + 1);
@@ -832,14 +832,14 @@ EXPORT_API int vpnsvc_set_mtu(vpnsvc_h handle, int mtu)
 
 	/* parameter check */
 	if (handle == NULL) {
-		LOGE("handle is a NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("handle is a NULL"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 	tun_s = (vpnsvc_tun_s*)handle;
 
 	if (mtu <= 0) {
-		LOGE("Incorrect MTU Size = %d", mtu);
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("Incorrect MTU Size = %d", mtu); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	tun_s->mtu = mtu;
@@ -862,14 +862,14 @@ EXPORT_API int vpnsvc_set_blocking(vpnsvc_h handle, bool blocking)
 	int flags;
 
 	if (tun_s->fd <= 0) {
-		LOGE("The Tunnel File Descriptor fd = %d", tun_s->fd);
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("The Tunnel File Descriptor fd = %d", tun_s->fd); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	flags = fcntl(tun_s->fd, F_GETFL);
 	if (flags < 0) {
-		LOGD("File Descriptor Flags GET Failed fd = %d", tun_s->fd);
-		flags = 0;
+		LOGD("File Descriptor Flags GET Failed fd = %d", tun_s->fd); //LCOV_EXCL_LINE
+		flags = 0; //LCOV_EXCL_LINE
 	}
 
 	if (blocking == false)
@@ -878,8 +878,8 @@ EXPORT_API int vpnsvc_set_blocking(vpnsvc_h handle, bool blocking)
 		flags = flags & (~O_NONBLOCK);
 
 	if (fcntl(tun_s->fd, F_SETFL, flags) < 0) {
-		LOGE("Failed fd = %d F_SETFL(flags) = %d", tun_s->fd, flags);
-		return VPNSVC_ERROR_IO_ERROR;
+		LOGE("Failed fd = %d F_SETFL(flags) = %d", tun_s->fd, flags); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_IO_ERROR; //LCOV_EXCL_LINE
 	}
 	return VPNSVC_ERROR_NONE;
 }
@@ -898,8 +898,8 @@ EXPORT_API int vpnsvc_set_session(vpnsvc_h handle, const char* session)
 	tun_s = (vpnsvc_tun_s*)handle;
 
 	if (session == NULL) {
-		LOGE("Session Name string is NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("Session Name string is NULL"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	strncpy(tun_s->session, session, VPNSVC_SESSION_STRING_LEN);
@@ -923,8 +923,8 @@ EXPORT_API int vpnsvc_get_session(vpnsvc_h handle, char** session)
 	tun_s = (vpnsvc_tun_s*)handle;
 
 	if (session == NULL) {
-		LOGE("Session Name string is NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("Session Name string is NULL"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	g_strlcpy(la_session, tun_s->session, VPNSVC_SESSION_STRING_LEN + 1);
