@@ -30,8 +30,17 @@ extern "C" {
 
 #include "generated-code.h"
 
+typedef enum _net_vpn_service_privilege_e
+{
+	PRIVILEGE_VPN_SERVICE = 0x00,
+	PRIVILEGE_VPN_SERVICE_ADMIN,
+	PRIVILEGE_INTERNET,
+} net_vpn_service_privilege_e;
+
 void vpnsvc_create_and_init(void);
 Vpnsvc *get_vpnsvc_object(void);
+gboolean vpn_service_gdbus_check_privilege(GDBusMethodInvocation *invocation,
+	net_vpn_service_privilege_e _privilege);
 
 #ifdef __cplusplus
 }

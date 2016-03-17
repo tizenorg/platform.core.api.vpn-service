@@ -9,7 +9,7 @@ SET(INCLUDEDIR "\${prefix}/include")
 SET(DAEMON_DIR "${CMAKE_SOURCE_DIR}/daemon")
 SET(VERSION 0.1)
 
-SET(requires "dlog dbus-1 glib-2.0 gio-2.0 gio-unix-2.0 capi-base-common capi-appfw-package-manager")
+SET(requires "dlog dbus-1 glib-2.0 gio-2.0 gio-unix-2.0 capi-base-common capi-appfw-package-manager cynara-client cynara-creds-gdbus cynara-session")
 SET(pc_requires "capi-base-common")
 
 SET(SRCS
