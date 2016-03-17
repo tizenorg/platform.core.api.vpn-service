@@ -272,12 +272,13 @@ static void connman_set_items(GDBusConnection *connection, char *profile,
 	GVariant *params = NULL;
 	char *strings = strdup(items);
 	char *addr = NULL;
+	char *temp = NULL;
 
 	builder = g_variant_builder_new(G_VARIANT_TYPE("as"));
-	if ((addr = strtok(strings, ", ")) != NULL) {
+	if ((addr = strtok_r(strings, ", ", &temp)) != NULL) {
 		do {
 			g_variant_builder_add(builder, "s", addr);
-		} while ((addr = strtok(NULL, ", ")) != NULL);
+		} while ((addr = strtok_r(NULL, ", ", &temp)) != NULL);
 	}
 	free(strings);
 	params = g_variant_new("(sv)", keystr,
