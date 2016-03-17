@@ -19,6 +19,9 @@ BuildRequires:  pkgconfig(capi-appfw-application)
 BuildRequires:  pkgconfig(capi-appfw-package-manager)
 BuildRequires:  pkgconfig(capi-appfw-app-manager)
 BuildRequires:	pkgconfig(capi-system-info)
+BuildRequires: pkgconfig(cynara-client)
+BuildRequires: pkgconfig(cynara-creds-gdbus)
+BuildRequires: pkgconfig(cynara-session)
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 

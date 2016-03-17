@@ -26,6 +26,10 @@
 #include "vpndbus.h"
 #include "vpn_service_daemon.h"
 
+#include "cynara-client.h"
+#include "cynara-creds-gdbus.h"
+#include "cynara-session.h"
+
 #ifdef LOG_TAG
 #undef LOG_TAG
 #endif
@@ -43,8 +47,17 @@ gboolean handle_vpn_init(Vpnsvc *object,
 {
 	LOGD("handle_vpn_init");
 
-	vpnsvc_tun_s handle_s;
 	int result = VPNSVC_ERROR_NONE;
+
+	/* check privilege */
+	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE_ADMIN) == false
+		|| vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_INTERNET) == false) {
+		LOGE("permission denied, and finished request.");
+		result = VPNSVC_ERROR_PERMISSION_DENIED;
+		goto done;
+	}
+
+	vpnsvc_tun_s handle_s;
 	GDBusMessage *msg;
 	GUnixFDList *fd_list;
 	int fd_list_length;
@@ -66,6 +79,8 @@ gboolean handle_vpn_init(Vpnsvc *object,
 	LOGD("handle_s.fd : %d, handle_s.index : %d, handle_s.name : %s",
 			handle_s.fd, handle_s.index, handle_s.name);
 
+done:
+
 	vpnsvc_complete_vpn_init(object, invocation, result, handle_s.index, handle_s.name);
 
 	return TRUE;
@@ -75,13 +90,23 @@ gboolean handle_vpn_deinit(Vpnsvc *object,
 									GDBusMethodInvocation *invocation,
 									const gchar *arg_dev_name)
 {
+	LOGD("handle_vpn_deinit");
+
 	int result = VPNSVC_ERROR_NONE;
 
-	LOGD("handle_vpn_deinit");
+	/* check privilege */
+	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE_ADMIN) == false
+		|| vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_INTERNET) == false) {
+		LOGE("permission denied, and finished request.");
+		result = VPNSVC_ERROR_PERMISSION_DENIED;
+		goto done;
+	}
+
 	LOGD("vpn_deinit, %s\n", arg_dev_name);
 
 	result = vpn_daemon_deinit(arg_dev_name);
 
+done:
 	vpnsvc_complete_vpn_deinit(object, invocation, result);
 
 	return TRUE;
@@ -91,14 +116,23 @@ gboolean handle_vpn_protect(Vpnsvc *object,
 									GDBusMethodInvocation *invocation,
 									const gchar *arg_dev_name)
 {
+	LOGD("handle_vpn_protect");
+
 	int result = VPNSVC_ERROR_NONE;
+
+	/* check privilege */
+	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE_ADMIN) == false
+		|| vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_INTERNET) == false) {
+		LOGE("permission denied, and finished request.");
+		result = VPNSVC_ERROR_PERMISSION_DENIED;
+		goto done;
+	}
+
 	int socket;
 	GDBusMessage *msg;
 	GUnixFDList *fd_list;
 	int fd_list_length;
 	const int *fds;
-
-	LOGD("handle_vpn_protect");
 
 	msg = g_dbus_method_invocation_get_message(invocation);
 	fd_list = g_dbus_message_get_unix_fd_list(msg);
@@ -111,6 +145,7 @@ gboolean handle_vpn_protect(Vpnsvc *object,
 
 	result = vpn_daemon_protect(socket, arg_dev_name);
 
+done:
 	vpnsvc_complete_vpn_protect(object, invocation, result);
 
 	return TRUE;
@@ -128,9 +163,9 @@ gboolean handle_vpn_up(Vpnsvc *object,
 								const gchar *arg_dns_suffix,
 								guint arg_mtu)
 {
-	int result = VPNSVC_ERROR_NONE;
-
 	LOGD("handle_vpn_up");
+
+	int result = VPNSVC_ERROR_NONE;
 
 	char* routes[arg_nr_routes];
 	int prefix[arg_nr_routes];
@@ -143,6 +178,13 @@ gboolean handle_vpn_up(Vpnsvc *object,
 
 	gchar* route_dest;
 	gint route_prefix;
+
+	/* check privilege */
+	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE_ADMIN) == false) {
+		LOGE("permission denied, and finished request.");
+		result = VPNSVC_ERROR_PERMISSION_DENIED;
+		goto done;
+	}
 
 	LOGD("iface_index : %d", arg_iface_index);
 	LOGD("local ip : %s", arg_local_ip);
@@ -222,11 +264,21 @@ gboolean handle_vpn_down(Vpnsvc *object,
 									gint arg_iface_index)
 {
 	LOGD("handle_vpn_down");
+
 	int result = VPNSVC_ERROR_NONE;
+
+	/* check privilege */
+	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE_ADMIN) == false) {
+		LOGE("permission denied, and finished request.");
+		result = VPNSVC_ERROR_PERMISSION_DENIED;
+		goto done;
+	}
 
 	LOGD("vpn_down, %d\n", arg_iface_index);
 
 	result = vpn_daemon_down(arg_iface_index);
+
+done:
 
 	vpnsvc_complete_vpn_down(object, invocation, result);
 
@@ -241,6 +293,7 @@ gboolean handle_vpn_block_networks(Vpnsvc *object,
 											guint arg_nr_nets_orig)
 {
 	LOGD("handle_vpn_block_networks");
+
 	int result = VPNSVC_ERROR_NONE;
 
 	char *nets_vpn[arg_nr_nets_vpn];
@@ -253,6 +306,14 @@ gboolean handle_vpn_block_networks(Vpnsvc *object,
 	GVariantIter iter;
 	gchar* route_dest;
 	gint route_prefix;
+
+	/* check privilege */
+	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE_ADMIN) == false
+		|| vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_INTERNET) == false) {
+		LOGE("permission denied, and finished request.");
+		result = VPNSVC_ERROR_PERMISSION_DENIED;
+		goto done;
+	}
 
 	LOGD("vpn_block_networks");
 
@@ -299,6 +360,8 @@ gboolean handle_vpn_block_networks(Vpnsvc *object,
 	/* call function */
 	result = vpn_daemon_block_networks(nets_vpn, prefix_vpn, arg_nr_nets_vpn, nets_orig, prefix_orig, arg_nr_nets_orig);
 
+done:
+
 	vpnsvc_complete_vpn_block_networks(object, invocation, result);
 
 	return TRUE;
@@ -307,13 +370,23 @@ gboolean handle_vpn_block_networks(Vpnsvc *object,
 gboolean handle_vpn_unblock_networks(Vpnsvc *object,
 											GDBusMethodInvocation *invocation)
 {
+	LOGD("handle_vpn_unblock_networks");
+
 	int result = VPNSVC_ERROR_NONE;
 
-	LOGD("handle_vpn_unblock_networks");
+	/* check privilege */
+	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE_ADMIN) == false
+		|| vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_INTERNET) == false) {
+		LOGE("permission denied, and finished request.");
+		result = VPNSVC_ERROR_PERMISSION_DENIED;
+		goto done;
+	}
+
 	LOGD("vpn_unblock_networks");
 
 	result = vpn_daemon_unblock_networks();
 
+done:
 	vpnsvc_complete_vpn_unblock_networks(object, invocation, result);
 
 	return TRUE;
@@ -367,3 +440,71 @@ void vpnsvc_create_and_init(void)
 	return;
 }
 
+
+gboolean vpn_service_gdbus_check_privilege(GDBusMethodInvocation *invocation, net_vpn_service_privilege_e _privilege)
+{
+
+	int ret = 0;
+	int pid = 0;
+	char *user;
+	char *client;
+	char *client_session;
+	char *privilege = NULL;
+	cynara *p_cynara = NULL;
+	const char *sender_unique_name;
+	GDBusConnection *connection;
+
+	connection = g_dbus_method_invocation_get_connection(invocation);
+	sender_unique_name = g_dbus_method_invocation_get_sender(invocation);
+
+	ret = cynara_initialize(&p_cynara, NULL);
+	if (ret != CYNARA_API_SUCCESS) {
+		LOGD("cynara_initialize() failed");
+		return FALSE;
+	}
+
+	ret =	cynara_creds_gdbus_get_pid(connection, sender_unique_name, &pid);
+	if (ret != CYNARA_API_SUCCESS) {
+		LOGD("cynara_creds_gdbus_get_pid() failed");
+		return FALSE;
+	}
+
+	ret = cynara_creds_gdbus_get_user(connection, sender_unique_name, USER_METHOD_DEFAULT, &user);
+	if (ret != CYNARA_API_SUCCESS) {
+		LOGD("cynara_creds_gdbus_get_user() failed");
+		return FALSE;
+	}
+
+	ret = cynara_creds_gdbus_get_client(connection, sender_unique_name, CLIENT_METHOD_DEFAULT, &client);
+	if (ret != CYNARA_API_SUCCESS) {
+		LOGD("cynara_creds_gdbus_get_client() failed");
+		return FALSE;
+	}
+
+	switch (_privilege)
+	{
+	case PRIVILEGE_VPN_SERVICE:
+		privilege = "http://tizen.org/privilege/vpnservice";
+	break;
+
+	case PRIVILEGE_VPN_SERVICE_ADMIN :
+		privilege = "http://tizen.org/privilege/vpnservice.admin";
+	break;
+
+	case PRIVILEGE_INTERNET :
+		privilege = "http://tizen.org/privilege/internet";
+	break;
+	default :
+		LOGD("Undifined privilege");
+		return FALSE;
+	break;
+	}
+
+	client_session = cynara_session_from_pid(pid);
+
+	ret = cynara_check(p_cynara, client, client_session, user, privilege);
+	if (ret == CYNARA_API_ACCESS_ALLOWED);
+		LOGD("cynara PASS");
+
+	return (ret == CYNARA_API_ACCESS_ALLOWED) ? TRUE : FALSE;
+}
