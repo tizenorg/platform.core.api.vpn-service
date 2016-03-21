@@ -198,10 +198,10 @@ int vpnsvc_write(vpnsvc_h handle, const char* data, size_t size);
  * @see vpnsvc_unblock_networks()
  */
 int vpnsvc_block_networks(vpnsvc_h handle,
-		const char *routes_dest_vpn_addr[],
+		char *routes_dest_vpn_addr[],
 		int routes_vpn_prefix[],
 		size_t num_allow_routes_vpn,
-		const char *routes_dest_orig_addr[],
+		char *routes_dest_orig_addr[],
 		int routes_orig_prefix[],
 		size_t num_allow_routes_orig);
 

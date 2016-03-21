@@ -59,7 +59,7 @@ extern "C" {
  * @see vpnsvc_down()
  */
 int vpnsvc_up(vpnsvc_h handle, const char* local_ip, const char* remote_ip,
-				const char *routes_dest_addr[], int routes_prefix[], size_t num_routes,
+				char *routes_dest_addr[], int routes_prefix[], size_t num_routes,
 				const char** dns_servers, size_t num_dns_servers,
 				const char* dns_suffix);
 

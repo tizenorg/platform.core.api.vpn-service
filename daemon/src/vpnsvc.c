@@ -18,6 +18,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <dlog/dlog.h>
 #include <gio/gunixfdlist.h>
@@ -167,7 +168,7 @@ gboolean handle_vpn_up(Vpnsvc *object,
 
 	int result = VPNSVC_ERROR_NONE;
 
-	char* routes[arg_nr_routes];
+	char *routes[arg_nr_routes];
 	int prefix[arg_nr_routes];
 	char **dns_servers = NULL;
 
@@ -503,7 +504,7 @@ gboolean vpn_service_gdbus_check_privilege(GDBusMethodInvocation *invocation, ne
 	client_session = cynara_session_from_pid(pid);
 
 	ret = cynara_check(p_cynara, client, client_session, user, privilege);
-	if (ret == CYNARA_API_ACCESS_ALLOWED);
+	if (ret == CYNARA_API_ACCESS_ALLOWED)
 		LOGD("cynara PASS");
 
 	return (ret == CYNARA_API_ACCESS_ALLOWED) ? TRUE : FALSE;

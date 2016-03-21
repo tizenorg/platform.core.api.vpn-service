@@ -444,7 +444,7 @@ EXPORT_API int vpnsvc_protect(vpnsvc_h handle, int socket_fd, const char* iface_
 }
 
 EXPORT_API int vpnsvc_up(vpnsvc_h handle, const char* local_ip, const char* remote_ip,
-				const char* routes_dest_add[], int routes_prefix[], size_t num_routes,
+				char* routes_dest_add[], int routes_prefix[], size_t num_routes,
 				const char** dns_servers, size_t num_dns_servers,
 				const char* dns_suffix)
 {
@@ -649,10 +649,10 @@ EXPORT_API int vpnsvc_write(vpnsvc_h handle, const char* data, size_t size)
 
 
 EXPORT_API int vpnsvc_block_networks(vpnsvc_h handle,
-		const char* routes_dest_vpn_addr[],
+		char* routes_dest_vpn_addr[],
 		int routes_vpn_prefix[],
 		size_t num_allow_routes_vpn,
-		const char* routes_dest_orig_addr[],
+		char* routes_dest_orig_addr[],
 		int routes_orig_prefix[],
 		size_t num_allow_routes_orig)
 

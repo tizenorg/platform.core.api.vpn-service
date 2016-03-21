@@ -84,7 +84,7 @@ static in_addr_t host2net(ipv4 host)
 	return net;
 }
 
-static int add_routes(char* iface_name, const char* routes[], int prefix[], size_t nr_routes)
+static int add_routes(char* iface_name, char* routes[], int prefix[], size_t nr_routes)
 {
 	struct rtentry rt;
 	struct sockaddr_in addr;
@@ -732,7 +732,7 @@ int vpn_daemon_protect(int socket_fd, const char* dev_name)
 }
 
 int vpn_daemon_up(int iface_index, const char* local_ip, const char* remote_ip,
-						const char* routes[], int prefix[], size_t nr_routes,
+						char* routes[], int prefix[], size_t nr_routes,
 						char** dns_servers, size_t nr_dns, size_t total_dns_string_cnt,
 						const char* dns_suffix, const unsigned int mtu) {
 
@@ -913,8 +913,8 @@ int vpn_daemon_down(int iface_index)
 	return VPNSVC_ERROR_NONE;
 }
 
-int vpn_daemon_block_networks(const char* nets_vpn[], int prefix_vpn[], size_t nr_nets_vpn,
-		const char* nets_orig[], int prefix_orig[], size_t nr_nets_orig) {
+int vpn_daemon_block_networks(char* nets_vpn[], int prefix_vpn[], size_t nr_nets_vpn,
+		char* nets_orig[], int prefix_orig[], size_t nr_nets_orig) {
 	unsigned int i;
 
 	/* iptable chain regist */
