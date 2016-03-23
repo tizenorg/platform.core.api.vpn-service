@@ -51,7 +51,7 @@ gboolean handle_vpn_init(Vpnsvc *object,
 	int result = VPNSVC_ERROR_NONE;
 
 	/* check privilege */
-	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE_ADMIN) == false
+	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE) == false
 		|| vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_INTERNET) == false) {
 		LOGE("permission denied, and finished request.");
 		result = VPNSVC_ERROR_PERMISSION_DENIED;
@@ -96,7 +96,7 @@ gboolean handle_vpn_deinit(Vpnsvc *object,
 	int result = VPNSVC_ERROR_NONE;
 
 	/* check privilege */
-	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE_ADMIN) == false
+	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE) == false
 		|| vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_INTERNET) == false) {
 		LOGE("permission denied, and finished request.");
 		result = VPNSVC_ERROR_PERMISSION_DENIED;
@@ -122,7 +122,7 @@ gboolean handle_vpn_protect(Vpnsvc *object,
 	int result = VPNSVC_ERROR_NONE;
 
 	/* check privilege */
-	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE_ADMIN) == false
+	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE) == false
 		|| vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_INTERNET) == false) {
 		LOGE("permission denied, and finished request.");
 		result = VPNSVC_ERROR_PERMISSION_DENIED;
@@ -309,7 +309,7 @@ gboolean handle_vpn_block_networks(Vpnsvc *object,
 	gint route_prefix;
 
 	/* check privilege */
-	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE_ADMIN) == false
+	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE) == false
 		|| vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_INTERNET) == false) {
 		LOGE("permission denied, and finished request.");
 		result = VPNSVC_ERROR_PERMISSION_DENIED;
@@ -376,7 +376,7 @@ gboolean handle_vpn_unblock_networks(Vpnsvc *object,
 	int result = VPNSVC_ERROR_NONE;
 
 	/* check privilege */
-	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE_ADMIN) == false
+	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE) == false
 		|| vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_INTERNET) == false) {
 		LOGE("permission denied, and finished request.");
 		result = VPNSVC_ERROR_PERMISSION_DENIED;
