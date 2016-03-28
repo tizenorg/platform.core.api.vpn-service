@@ -336,7 +336,6 @@ EXPORT_API int vpnsvc_init(const char* iface_name, vpnsvc_h *handle)
 			op = NULL;
 		}
 	}
-	close(iface_fd);
 	return result;
 }
 
