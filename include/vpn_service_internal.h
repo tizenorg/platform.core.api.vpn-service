@@ -46,7 +46,7 @@ extern "C" {
  * @param[in] num_routes			The number of routes, Unlimitation
  * @param[in] dns_servers			The list of DNS server names - Optional
  * @param[in] num_dns_servers		The number of DNS server names - Optionl, Unlimitation
- * @param[in] dns_suffix     		The DNS suffix - Optional (e.g. tizen.org)
+ * @param[in] dns_suffix		The DNS suffix - Optional (e.g. tizen.org)
  * @return 0 on success. otherwise, a negative error value.
  * @retval #VPNSVC_ERROR_NONE                  Success
  * @retval #VPNSVC_ERROR_INVALID_PARAMETER     Invalid parameter

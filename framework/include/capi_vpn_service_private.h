@@ -61,7 +61,7 @@ extern "C" {
 		int feature_rv = _vpnsvc_check_feature_supported(feature_name); \
 		if (feature_rv != VPNSVC_ERROR_NONE) \
 			return feature_rv; \
-	} while(0)
+	} while (0)
 
 /**
   * @brief This data structure has a fido data and its length.

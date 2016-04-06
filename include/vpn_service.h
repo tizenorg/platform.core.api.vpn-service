@@ -54,17 +54,16 @@ extern "C" {
   * @brief   Enumeration for VPN service error types.
   * @details Indicate formats of error type field
   */
-typedef enum
-{
-    VPNSVC_ERROR_NONE = TIZEN_ERROR_NONE,                            /**< Successful */
-    VPNSVC_ERROR_INVALID_PARAMETER = TIZEN_ERROR_INVALID_PARAMETER,  /**< Invalid parameter */
-    VPNSVC_ERROR_OUT_OF_MEMORY = TIZEN_ERROR_OUT_OF_MEMORY,          /**< Out of memory */
-    VPNSVC_ERROR_PERMISSION_DENIED = TIZEN_ERROR_PERMISSION_DENIED,  /**< Permission denied */
-    VPNSVC_ERROR_NO_SUCH_FILE = TIZEN_ERROR_NO_SUCH_FILE,            /**< No such file or directory */
-    VPNSVC_ERROR_IO_ERROR = TIZEN_ERROR_IO_ERROR,                    /**< IO error */
-    VPNSVC_ERROR_TIMEOUT = TIZEN_ERROR_TIMED_OUT,                    /**< Time out error or no answer */
-    VPNSVC_ERROR_IPC_FAILED = TIZEN_ERROR_VPNSVC | 0x02,             /**< Failed to communicate with server */
-    VPNSVC_ERROR_NOT_SUPPORTED = TIZEN_ERROR_NOT_SUPPORTED           /**< Not Supported */
+typedef enum {
+	VPNSVC_ERROR_NONE = TIZEN_ERROR_NONE,				/**< Successful */
+	VPNSVC_ERROR_INVALID_PARAMETER = TIZEN_ERROR_INVALID_PARAMETER,	/**< Invalid parameter */
+	VPNSVC_ERROR_OUT_OF_MEMORY = TIZEN_ERROR_OUT_OF_MEMORY,		/**< Out of memory */
+	VPNSVC_ERROR_PERMISSION_DENIED = TIZEN_ERROR_PERMISSION_DENIED,	/**< Permission denied */
+	VPNSVC_ERROR_NO_SUCH_FILE = TIZEN_ERROR_NO_SUCH_FILE,		/**< No such file or directory */
+	VPNSVC_ERROR_IO_ERROR = TIZEN_ERROR_IO_ERROR,			/**< IO error */
+	VPNSVC_ERROR_TIMEOUT = TIZEN_ERROR_TIMED_OUT,			/**< Time out error or no answer */
+	VPNSVC_ERROR_IPC_FAILED = TIZEN_ERROR_VPNSVC | 0x02,		/**< Failed to communicate with server */
+	VPNSVC_ERROR_NOT_SUPPORTED = TIZEN_ERROR_NOT_SUPPORTED		/**< Not Supported */
 } vpnsvc_error_e;
 
 
@@ -326,6 +325,6 @@ int vpnsvc_get_session(vpnsvc_h handle, char** session);
 
 #ifdef __cplusplus
 }
-#endif // __cplusplus
+#endif	// __cplusplus
 
 #endif /* __TIZEN_CAPI_VPN_SERVICE_H__ */

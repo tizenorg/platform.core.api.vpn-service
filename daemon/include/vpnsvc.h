@@ -30,8 +30,7 @@ extern "C" {
 
 #include "generated-code.h"
 
-typedef enum _net_vpn_service_privilege_e
-{
+typedef enum _net_vpn_service_privilege_e {
 	PRIVILEGE_VPN_SERVICE = 0x00,
 	PRIVILEGE_VPN_SERVICE_ADMIN,
 	PRIVILEGE_INTERNET,

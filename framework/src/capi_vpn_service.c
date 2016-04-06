@@ -145,7 +145,7 @@ GVariant *_vpnsvc_invoke_dbus_method(GDBusConnection *connection,
 
 	if (reply == NULL) {
 		if (error != NULL) {
-			if (error->code == G_DBUS_ERROR_ACCESS_DENIED){
+			if (error->code == G_DBUS_ERROR_ACCESS_DENIED) {
 				LOGE("g_dbus_connection_call_sync() failed"
 					"error [%d: %s]", error->code, error->message);//LCOV_EXCL_LINE
 				*dbus_error = VPNSVC_ERROR_PERMISSION_DENIED;//LCOV_EXCL_LINE
@@ -264,9 +264,8 @@ EXPORT_API int vpnsvc_init(const char* iface_name, vpnsvc_h *handle)
 									g_variant_new("(su)", VPNSVC_DBUS_SERVICE_NAME, 0),
 									&dbus_result);
 
-	if (dbus_result == VPNSVC_ERROR_PERMISSION_DENIED){
+	if (dbus_result == VPNSVC_ERROR_PERMISSION_DENIED)
 		return VPNSVC_ERROR_PERMISSION_DENIED;
-	}
 
 	if (op == NULL) {
 		_vpnsvc_deinit_vpnsvc_tun_s(tmp_s); //LCOV_EXCL_LINE
@@ -366,9 +365,8 @@ EXPORT_API int vpnsvc_deinit(vpnsvc_h handle)
 									g_variant_new("(s)", tun_s->name),
 									&dbus_result);
 
-		if (dbus_result == VPNSVC_ERROR_PERMISSION_DENIED){
+		if (dbus_result == VPNSVC_ERROR_PERMISSION_DENIED)
 			return VPNSVC_ERROR_PERMISSION_DENIED;
-		}
 
 		if (op == NULL) {
 			return VPNSVC_ERROR_IPC_FAILED; //LCOV_EXCL_LINE
@@ -425,9 +423,8 @@ EXPORT_API int vpnsvc_protect(vpnsvc_h handle, int socket_fd, const char* iface_
 						socket_fd,
 						&dbus_result);
 
-	if (dbus_result == VPNSVC_ERROR_PERMISSION_DENIED){
+	if (dbus_result == VPNSVC_ERROR_PERMISSION_DENIED)
 		return VPNSVC_ERROR_PERMISSION_DENIED;
-	}
 
 	if (op == NULL) {
 		return VPNSVC_ERROR_IPC_FAILED; //LCOV_EXCL_LINE
@@ -707,9 +704,8 @@ EXPORT_API int vpnsvc_block_networks(vpnsvc_h handle,
 								nets_param_orig, num_allow_routes_orig),
 								&dbus_result);
 
-	if (dbus_result == VPNSVC_ERROR_PERMISSION_DENIED){
+	if (dbus_result == VPNSVC_ERROR_PERMISSION_DENIED)
 		return VPNSVC_ERROR_PERMISSION_DENIED;
-	}
 
 	if (op == NULL) {
 		return VPNSVC_ERROR_IPC_FAILED; //LCOV_EXCL_LINE
@@ -757,9 +753,8 @@ EXPORT_API int vpnsvc_unblock_networks(vpnsvc_h handle)
 									g_variant_new("()"),
 									&dbus_result);
 
-	if (dbus_result == VPNSVC_ERROR_PERMISSION_DENIED){
+	if (dbus_result == VPNSVC_ERROR_PERMISSION_DENIED)
 		return VPNSVC_ERROR_PERMISSION_DENIED;
-	}
 
 	if (op == NULL) {
 		return VPNSVC_ERROR_IPC_FAILED; //LCOV_EXCL_LINE

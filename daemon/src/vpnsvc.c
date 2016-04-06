@@ -482,20 +482,19 @@ gboolean vpn_service_gdbus_check_privilege(GDBusMethodInvocation *invocation, ne
 		return FALSE;
 	}
 
-	switch (_privilege)
-	{
+	switch (_privilege) {
 	case PRIVILEGE_VPN_SERVICE:
 		privilege = "http://tizen.org/privilege/vpnservice";
 	break;
 
-	case PRIVILEGE_VPN_SERVICE_ADMIN :
+	case PRIVILEGE_VPN_SERVICE_ADMIN:
 		privilege = "http://tizen.org/privilege/vpnservice.admin";
 	break;
 
-	case PRIVILEGE_INTERNET :
+	case PRIVILEGE_INTERNET:
 		privilege = "http://tizen.org/privilege/internet";
 	break;
-	default :
+	default:
 		LOGD("Undifined privilege");
 		return FALSE;
 	break;
