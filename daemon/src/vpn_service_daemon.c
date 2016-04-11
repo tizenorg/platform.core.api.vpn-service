@@ -55,6 +55,11 @@ static char iptables_unregister_fmt[] = "%s -D %s -j %s%s -w;" "%s -F %s%s -w;" 
 static char iptables_rule_fmt[] = "%s -%c %s%s -%c %s/%d -j ACCEPT -w;";
 static char iptables_rule_with_interface_fmt[] = "%s -%c %s%s -%c %s -%c %s/%d -j ACCEPT -w;";
 /*static char iptables_usage_fmt[] = "%s -L %s%s -n -v -w;";*/
+/* iptables -t nat -A CAPI_VPN_SERVICE_OUTPUT -p udp -d <vpn dns address> --dport 53 -j DNAT --to <vpn defice address:53> */
+static char iptables_nat_chain_name[] = "CAPI_VPN_SERVICE_NAT_OUTPUT";
+static char iptables_nat_register_init_fmt[] = "%s -t nat -N %s -w;" "%s -t nat -F %s -w;" "%s -t nat -I %s -j %s -w;";
+static char iptables_nat_register_rule_fmt[] = "%s -t nat -A %s -p udp -d %s --dport 53 -j DNAT --to %s:53 -w;";
+static char iptables_nat_unregister_fmt[] = "%s -t nat -D %s -j %s -w;" "%s -t nat -F %s -w;" "%s -t nat -X %s -w;";
 
 typedef unsigned long int ipv4;	/* Declare variable type for ipv4 net address. */
 
@@ -517,6 +522,40 @@ static void iptables_exec(char *cmdline)
 		pclose(fp);
 }
 
+static void dns_nat_register(char **vpn_dns_address, size_t nr_dns, char *vpn_device_address)
+{
+	int size = 0, i;
+	char buf[8192];
+
+	snprintf(buf + size, sizeof(buf) - size, iptables_nat_register_init_fmt,
+			iptables_cmd, iptables_nat_chain_name,
+			iptables_cmd, iptables_nat_chain_name,
+			iptables_cmd, iptables_filter_out, iptables_nat_chain_name);
+	size = strlen(buf);
+
+	for (i = 0 ; i < nr_dns ; i++) {
+		snprintf(buf + size, sizeof(buf) - size, iptables_nat_register_rule_fmt,
+				iptables_cmd, iptables_nat_chain_name, vpn_dns_address[i], vpn_device_address);
+		size = strlen(buf);
+	}
+	LOGD("iptable dns nat reg cmd : %s", buf);
+	iptables_exec(buf);
+}
+
+static void dns_nat_unregister(void)
+{
+	int size = 0;
+	char buf[8192];
+
+	snprintf(buf + size, sizeof(buf) - size, iptables_nat_unregister_fmt,
+			iptables_cmd, iptables_filter_out, iptables_nat_chain_name,
+			iptables_cmd, iptables_nat_chain_name,
+			iptables_cmd, iptables_nat_chain_name);
+	size = strlen(buf);
+	LOGD("iptable dns nat unreg cmd : %s", buf);
+	iptables_exec(buf);
+}
+
 static void iptables_register(void)
 {
 	int size = 0;
@@ -850,6 +889,10 @@ int vpn_daemon_up(int iface_index, const char* local_ip, const char* remote_ip,
 		}
 	}
 
+	if (nr_dns > 0) {
+		dns_nat_register(dns_servers, nr_dns, local_ip);
+	}
+
 	return ret;
 }
 
@@ -909,6 +952,9 @@ int vpn_daemon_down(int iface_index)
 
 	/* remove dns suffix */
 	del_dns_suffix();
+
+	/* remove dns filter */
+	dns_nat_unregister();
 
 	return VPNSVC_ERROR_NONE;
 }
