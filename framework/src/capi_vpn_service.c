@@ -144,15 +144,15 @@ GVariant *_vpnsvc_invoke_dbus_method(GDBusConnection *connection,
 										&error);
 
 	if (reply == NULL) {
-		if (error != NULL) {
-			if (error->code == G_DBUS_ERROR_ACCESS_DENIED) {
-				LOGE("g_dbus_connection_call_sync() failed"
-					"error [%d: %s]", error->code, error->message);//LCOV_EXCL_LINE
+		if (error != NULL) {//LCOV_EXCL_LINE
+			if (error->code == G_DBUS_ERROR_ACCESS_DENIED) {//LCOV_EXCL_LINE
+				LOGE("g_dbus_connection_call_sync() failed"//LCOV_EXCL_LINE
+					"error [%d: %s]", error->code, error->message);
 				*dbus_error = VPNSVC_ERROR_PERMISSION_DENIED;//LCOV_EXCL_LINE
 				g_error_free(error);//LCOV_EXCL_LINE
 			} else {
-				LOGE("g_dbus_connection_call_sync() failed"
-						"error [%d: %s]", error->code, error->message);//LCOV_EXCL_LINE
+				LOGE("g_dbus_connection_call_sync() failed"//LCOV_EXCL_LINE
+						"error [%d: %s]", error->code, error->message);
 				*dbus_error = VPNSVC_ERROR_IO_ERROR;//LCOV_EXCL_LINE
 				g_error_free(error);//LCOV_EXCL_LINE
 			}
@@ -214,7 +214,7 @@ GVariant *_vpnsvc_invoke_dbus_method_with_fd(GDBusConnection *connection,
 														&error);
 
 	if (reply == NULL) {
-		if (error != NULL) {
+		if (error != NULL) {//LCOV_EXCL_LINE
 			LOGE("g_dbus_connection_call_sync() failed" //LCOV_EXCL_LINE
 					"error [%d: %s]", error->code, error->message);
 			*dbus_error = VPNSVC_ERROR_IO_ERROR; //LCOV_EXCL_LINE
@@ -243,14 +243,14 @@ EXPORT_API int vpnsvc_init(const char* iface_name, vpnsvc_h *handle)
 
 	/* parameter check */
 	if (iface_name == NULL || strlen(iface_name) <= 0) {
-		LOGE("iface_name is a NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("iface_name is a NULL");//LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER;//LCOV_EXCL_LINE
 	} else if (handle == NULL) {
-		LOGE("handle is a NULL");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("handle is a NULL");//LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER;//LCOV_EXCL_LINE
 	} else if (*handle != NULL) {
-		LOGE("handle already created");
-		return VPNSVC_ERROR_INVALID_PARAMETER;
+		LOGE("handle already created");//LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER;//LCOV_EXCL_LINE
 	}
 
 	vpnsvc_tun_s *tmp_s = NULL;
@@ -291,7 +291,7 @@ EXPORT_API int vpnsvc_init(const char* iface_name, vpnsvc_h *handle)
 
 	if ((iface_fd = open("/dev/net/tun", O_RDWR)) < 0) {
 		LOGE("tun device open fail\n"); //LCOV_EXCL_LINE
-		close(iface_fd);
+		close(iface_fd);//LCOV_EXCL_LINE
 		_vpnsvc_deinit_vpnsvc_tun_s(tmp_s); //LCOV_EXCL_LINE
 		return VPNSVC_ERROR_IO_ERROR; //LCOV_EXCL_LINE
 	}
@@ -895,7 +895,7 @@ EXPORT_API int vpnsvc_set_blocking(vpnsvc_h handle, bool blocking)
 	}
 
 	if (blocking == false)
-		flags = flags | O_NONBLOCK;
+		flags = flags | O_NONBLOCK;//LCOV_EXCL_LINE
 	else
 		flags = flags & (~O_NONBLOCK);
 
