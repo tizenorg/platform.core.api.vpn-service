@@ -605,6 +605,7 @@ EXPORT_API int vpnsvc_read(vpnsvc_h handle, int timeout_ms)
 	/* listen for events */
 	FD_ZERO(&read_set);
 	FD_SET(tun_s->fd, &read_set);
+	tv.tv_sec = 0;
 	tv.tv_usec = timeout_ms*1000;
 	retVal = select(tun_s->fd +1, &read_set, NULL, NULL, &tv);
 
