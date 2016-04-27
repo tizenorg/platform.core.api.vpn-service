@@ -140,6 +140,57 @@ static int add_routes(char* iface_name, char* routes[], int prefix[], size_t nr_
 	return VPNSVC_ERROR_NONE;
 }
 
+static int add_dns_routes(char* if_name, char** dns_servers, size_t nr_dns)
+{
+	struct rtentry rt;
+	struct sockaddr_in addr;
+	int sk;
+	unsigned int i = 0;
+
+	LOGD("Enter add_routes");
+
+	sk = socket(PF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
+	if (sk < 0) {
+		LOGE("socket failed : %s", strerror(errno));
+		return VPNSVC_ERROR_IO_ERROR;
+	}
+
+	for (i = 0; i < nr_dns; i++) {
+		memset(&rt, 0, sizeof(rt));
+
+		memset(&addr, 0, sizeof(addr));
+		addr.sin_family = AF_INET;
+		addr.sin_addr.s_addr = inet_addr(dns_servers[i]);
+		memcpy(&rt.rt_dst, &addr, sizeof(rt.rt_dst));
+
+		memset(&addr, 0, sizeof(addr));
+		addr.sin_family = AF_INET;
+		addr.sin_addr.s_addr = inet_addr("192.168.0.1");
+		memcpy(&rt.rt_gateway, &addr, sizeof(rt.rt_gateway));
+
+		/* set mask using by prefix length */
+		memset(&addr, 0, sizeof(addr));
+		addr.sin_family = AF_INET;
+		addr.sin_addr.s_addr = INADDR_ANY;
+		addr.sin_addr.s_addr = host2net(make_mask(32));
+		memcpy(&rt.rt_genmask, &addr, sizeof(rt.rt_genmask));
+
+		rt.rt_flags = RTF_UP | RTF_GATEWAY;
+		rt.rt_dev = if_name;
+		rt.rt_metric = 0;
+
+		if (ioctl(sk, SIOCADDRT, &rt) < 0) {
+			LOGE("ioctl SIOCADDRT failed : %s", strerror(errno));
+			close(sk);
+			return VPNSVC_ERROR_IO_ERROR;
+		}
+	}
+
+	close(sk);
+
+	return VPNSVC_ERROR_NONE;
+}
+
 static void connman_connection_open(void)
 {
 	if (global_connection == NULL) {
@@ -871,6 +922,16 @@ int vpn_daemon_up(int iface_index, const char* local_ip, const char* remote_ip,
 		}
 	}
 
+	/* add DNS routes */
+	if (nr_dns > 0) {
+		ret = add_dns_routes(ifr_tun.ifr_name, dns_servers, nr_dns);
+		if (ret != VPNSVC_ERROR_NONE) {
+			LOGE("add_dns failed");
+			return ret;
+		}
+	}
+
+#if 0
 	/* add DNS servers */
 	if (nr_dns > 0) {
 		ret = add_dns_servers(dns_servers, nr_dns, total_dns_string_cnt);
@@ -893,8 +954,11 @@ int vpn_daemon_up(int iface_index, const char* local_ip, const char* remote_ip,
 		dns_nat_register(dns_servers, nr_dns, local_ip);
 	}
 
+#endif
+
 	return ret;
 }
+
 
 int vpn_daemon_down(int iface_index)
 {
