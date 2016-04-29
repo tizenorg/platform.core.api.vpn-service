@@ -248,9 +248,6 @@ EXPORT_API int vpnsvc_init(const char* iface_name, vpnsvc_h *handle)
 	} else if (handle == NULL) {
 		LOGE("handle is a NULL");//LCOV_EXCL_LINE
 		return VPNSVC_ERROR_INVALID_PARAMETER;//LCOV_EXCL_LINE
-	} else if (*handle != NULL) {
-		LOGE("handle already created");//LCOV_EXCL_LINE
-		return VPNSVC_ERROR_INVALID_PARAMETER;//LCOV_EXCL_LINE
 	}
 
 	vpnsvc_tun_s *tmp_s = NULL;
