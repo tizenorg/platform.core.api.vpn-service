@@ -40,21 +40,45 @@
 
 vpnsvc_h handle = NULL;
 
+static const char *test_print_error(vpnsvc_error_e error)
+{
+	switch (error) {
+	case VPNSVC_ERROR_NONE:
+		return "VPNSVC_ERROR_NONE";
+	case VPNSVC_ERROR_INVALID_PARAMETER:
+		return "VPNSVC_ERROR_INVALID_PARAMETER";
+	case VPNSVC_ERROR_OUT_OF_MEMORY:
+		return "VPNSVC_ERROR_OUT_OF_MEMORY";
+	case VPNSVC_ERROR_PERMISSION_DENIED:
+		return "VPNSVC_ERROR_PERMISSION_DENIED";
+	case VPNSVC_ERROR_NO_SUCH_FILE:
+		return "VPNSVC_ERROR_NO_SUCH_FILE";
+	case VPNSVC_ERROR_IO_ERROR:
+		return "VPNSVC_ERROR_IO_ERROR";
+	case VPNSVC_ERROR_TIMEOUT:
+		return "VPNSVC_ERROR_TIMEOUT";
+	case VPNSVC_ERROR_IPC_FAILED:
+		return "VPNSVC_ERROR_IPC_FAILED";
+	case VPNSVC_ERROR_NOT_SUPPORTED:
+		return "VPNSVC_ERROR_NOT_SUPPORTED";
+	default:
+		return "VPNSVC_ERROR_UNKNOWN";
+	}
+}
+
 int test_vpnsvc_init()
 {
 	char *name = TEST_VPN_IF_NAME;
-	int ret = VPNSVC_ERROR_NONE;
+	int rv = VPNSVC_ERROR_NONE;
 	int int_value;
 
-	printf("test vpnsvc_init\n");
+	rv = vpnsvc_init(name, &handle);
 
-	ret = vpnsvc_init(name, &handle);
-
-	if (ret != VPNSVC_ERROR_NONE) {
-		printf("vpnsvc_init failed : %d\n", ret);
+	if (rv != VPNSVC_ERROR_NONE) {
+		printf("vpnsvc initialize fail [%s]\n", test_print_error(rv));
+		return -1;
 	} else {
 		char* result_name = NULL;
-		printf("vpnsvc_init Succeed : %d\n", ret);
 
 		if (vpnsvc_get_iface_fd(handle, &int_value) == VPNSVC_ERROR_NONE)
 			printf("iface_fd : %d\n", int_value);
@@ -66,32 +90,40 @@ int test_vpnsvc_init()
 		else
 			printf("Fail to get iface_index\n");
 
-		ret = vpnsvc_get_iface_name(handle, &result_name);
-		if (ret == VPNSVC_ERROR_NONE)
+		if (vpnsvc_get_iface_name(handle, &result_name) == VPNSVC_ERROR_NONE)
 			printf("iface_name : %s\n", result_name);
+		else
+			printf("Fail to get iface_name\n");
 	}
 
-	return 0;
+	printf("vpnsvc initialize success\n");
+	return 1;
 }
 
 int test_vpnsvc_deinit()
 {
-	printf("test vpnsvc_deinit\n");
+	int rv = 0;
 
 	if (handle)
-		vpnsvc_deinit(handle);
+		rv = vpnsvc_deinit(handle);
+	else {
+		printf("cannot deinitialize : handle is NULL\n");
+		rv = VPNSVC_ERROR_INVALID_PARAMETER;
+	}
+
+	if (rv != VPNSVC_ERROR_NONE) {
+		printf("vpnsvc deinitialize fail [%s]\n", test_print_error(rv));
+		return -1;
+	}
 
 	handle = NULL;
-
-	return 0;
-
+	printf("vpnsvc deinitialize success\n");
+	return 1;
 }
 
 int test_vpnsvc_protect()
 {
-	int sock, ret;
-
-	printf("test vpnsvc_protect\n");
+	int sock, rv;
 
 	if (!handle) {
 		printf("invalid handle\n");
@@ -103,20 +135,20 @@ int test_vpnsvc_protect()
 		return -2;
 	}
 
-	ret = vpnsvc_protect(handle, sock, "wlan0");
-	if (ret != VPNSVC_ERROR_NONE)
-		printf("vpnsvc_protect failed!\n");
+	rv = vpnsvc_protect(handle, sock, "wlan0");
+	if (rv != VPNSVC_ERROR_NONE)
+		printf("vpnsvc protect fail [%s]\n", test_print_error(rv));
 	else
-		printf("vpnsvc_protect Succeed!\n");
+		printf("vpnsvc protect success\n");
 
 	close(sock);
 
-	return 0;
+	return 1;
 }
 
 int test_vpnsvc_up()
 {
-	int ret;
+	int rv;
 	char local[VPNSVC_IP4_STRING_LEN] = {'\0',};
 	char remote[VPNSVC_IP4_STRING_LEN] = {'\0',};
 	char *routes[2];
@@ -152,11 +184,7 @@ int test_vpnsvc_up()
 	dns_server[0] = dns1;
 	dns_server[1] = dns2;
 
-	ret = vpnsvc_up(handle, local, remote, routes, prefix, nr_routes, dns_server, nr_dns, dns_suffix);
-	if (ret != VPNSVC_ERROR_NONE)
-		printf("vpnsvc_up failed!\n");
-	else
-		printf("vpnsvc_up Succeed!\n");
+	rv = vpnsvc_up(handle, local, remote, routes, prefix, nr_routes, dns_server, nr_dns, dns_suffix);
 
 	free(routes[0]);
 	free(routes[1]);
@@ -164,37 +192,41 @@ int test_vpnsvc_up()
 	routes[0] = NULL;
 	routes[1] = NULL;
 
-	return 0;
+	if (rv != VPNSVC_ERROR_NONE)
+		printf("vpnsvc up fail [%s]\n", test_print_error(rv));
+	else
+		printf("vpnsvc up success\n");
+
+	return 1;
 }
 
 int test_vpnsvc_down()
 {
-	int ret;
+	int rv;
 
 	if (!handle) {
 		printf("invalid handle\n");
 		return -1;
 	}
 
-	ret = vpnsvc_down(handle);
-
-	if (ret != VPNSVC_ERROR_NONE)
-		printf("vpnsvc_down failed!\n");
-	else
-		printf("vpnsvc_down Succeed!\n");
-
-	return 0;
-
+	rv = vpnsvc_down(handle);
+	if (rv != VPNSVC_ERROR_NONE) {
+		printf("vpnsvc down fail [%s]\n", test_print_error(rv));
+		return -1;
+	} else {
+		printf("vpnsvc down success\n");
+		return 1;
+	}
 }
 
 int test_vpnsvc_read()
 {
-	return 0;
+	return -1;
 }
 
 int test_vpnsvc_write()
 {
-	return 0;
+	return -1;
 }
 
 int test_vpnsvc_block_networks()
@@ -205,7 +237,7 @@ int test_vpnsvc_block_networks()
 	char* allow_nets[2];
 	int allow_prefix[2];
 	int allow_nr_nets = 2;
-	int ret;
+	int rv;
 
 	if (!handle) {
 		printf("invalid handle\n");
@@ -230,12 +262,7 @@ int test_vpnsvc_block_networks()
 	strncpy(allow_nets[1], "206.190.36.45", VPNSVC_IP4_STRING_LEN);
 	allow_prefix[1] = 32;
 
-	ret = vpnsvc_block_networks(handle, block_nets, block_prefix, block_nr_nets, allow_nets, allow_prefix, allow_nr_nets);
-
-	if (ret != VPNSVC_ERROR_NONE)
-		printf("vpnsvc_block_networks failed!\n");
-	else
-		printf("vpnsvc_block_networks Succeed!\n");
+	rv = vpnsvc_block_networks(handle, block_nets, block_prefix, block_nr_nets, allow_nets, allow_prefix, allow_nr_nets);
 
 	free(block_nets[0]);
 	free(block_nets[1]);
@@ -247,78 +274,84 @@ int test_vpnsvc_block_networks()
 	allow_nets[0] = NULL;
 	allow_nets[1] = NULL;
 
-	return 0;
-
+	if (rv != VPNSVC_ERROR_NONE) {
+		printf("vpnsvc block networks fail [%s]\n", test_print_error(rv));
+		return -1;
+	} else {
+		printf("vpnsvc block networks success\n");
+		return 1;
+	}
 }
 
 int test_vpnsvc_unblock_networks()
 {
-	int ret;
+	int rv;
 
 	if (!handle) {
 		printf("invalid handle\n");
 		return -1;
 	}
 
-	ret = vpnsvc_unblock_networks(handle);
-
-	if (ret != VPNSVC_ERROR_NONE)
-		printf("vpnsvc_unblock_networks failed!\n");
-	else
-		printf("vpnsvc_unblock_networks Succeed!\n");
-
-	return 0;
+	rv = vpnsvc_unblock_networks(handle);
+	if (rv != VPNSVC_ERROR_NONE) {
+		printf("vpnsvc unblock networks fail [%s]\n", test_print_error(rv));
+		return -1;
+	} else {
+		printf("vpnsvc unblock networks success");
+		return 1;
+	}
 }
 
 int test_vpnsvc_set_mtu()
 {
-	int ret;
+	int rv;
 
-	ret = vpnsvc_set_mtu(handle, 9000);
-
-	if (ret != VPNSVC_ERROR_NONE)
-		printf("vpnsvc_set_mtu failed!\n");
-	else
-		printf("vpnsvc_set_mtu Succeed!\n");
-
-	return 0;
+	rv = vpnsvc_set_mtu(handle, 9000);
+	if (rv != VPNSVC_ERROR_NONE) {
+		printf("vpnsvc set mtu fail [%s]\n", test_print_error(rv));
+		return -1;
+	} else {
+		printf("vpnsvc set mtu success\n");
+		return 1;
+	}
 }
 
 bool g_blocking = false;
 
 int test_vpnsvc_set_blocking()
 {
-	int ret;
+	int rv;
 	g_blocking = !g_blocking;
 
 	printf("Blocking Parameter: %s\n", g_blocking ? "true" : "false");
-	ret = vpnsvc_set_blocking(handle, g_blocking);
+	rv = vpnsvc_set_blocking(handle, g_blocking);
 
-	if (ret != VPNSVC_ERROR_NONE)
-		printf("vpnsvc_set_blocking failed!\n");
-	else
-		printf("vpnsvc_set_blocking Succeed!\n");
-
-	return 0;
+	if (rv != VPNSVC_ERROR_NONE) {
+		printf("vpnsvc set blocking fail [%s]\n", test_print_error(rv));
+		return -1;
+	} else {
+		printf("vpnsvc set blocking success\n");
+		return 1;
+	}
 }
 
 int test_vpnsvc_set_session()
 {
-	int ret;
+	int rv;
 	char *set_session = "vpnsvc_test VPN Session";
 	char *get_session = NULL;
 
-	ret = vpnsvc_set_session(handle, set_session);
+	rv = vpnsvc_set_session(handle, set_session);
 
-	if (ret != VPNSVC_ERROR_NONE) {
-		printf("vpnsvc_set_session failed!\n");
+	if (rv != VPNSVC_ERROR_NONE) {
+		printf("vpnsvc set session fail [%s]\n", test_print_error(rv));
+		return -1;
 	} else {
-		ret = vpnsvc_get_session(handle, &get_session);
-		printf("Session Name = %s\n", get_session);
-		printf("vpnsvc_set_session Succeed!\n");
+		rv = vpnsvc_get_session(handle, &get_session);
+		printf("session name = %s\n", get_session);
+		printf("vpnsvc set session Success\n");
+		return 1;
 	}
-
-	return 0;
 }
 
 int test_exit()
@@ -376,7 +409,11 @@ int main()
 			continue;
 		}
 
-		test_function_table[comm-1]();
+		int rv = test_function_table[comm-1]();
+		if (rv == 1)
+			printf("Operation succeeded!\n");
+		else
+			printf("Operation failed!\n");
 	}
 	return 0;
 }

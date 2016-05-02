@@ -34,6 +34,7 @@
 
 GVariant *op = NULL;
 
+static __thread GSList *vpn_handle_list = NULL;
 static __thread bool is_feature_checked = false;
 static __thread bool feature_supported = false;
 
@@ -58,6 +59,17 @@ int _vpnsvc_check_feature_supported(const char *feature_name)
 	}
 
 	return VPNSVC_ERROR_NONE;
+}
+
+static bool _vpn_check_handle_validity(vpnsvc_h vpnsvc)
+{
+	if (vpnsvc == NULL)
+		return false;
+
+	if (g_slist_find(vpn_handle_list, vpnsvc) != NULL)
+		return true;
+	else
+		return false;
 }
 
 static void _vpnsvc_init_vpnsvc_tun_s(vpnsvc_tun_s **s)
@@ -243,11 +255,11 @@ EXPORT_API int vpnsvc_init(const char* iface_name, vpnsvc_h *handle)
 
 	/* parameter check */
 	if (iface_name == NULL || strlen(iface_name) <= 0) {
-		LOGE("iface_name is a NULL");//LCOV_EXCL_LINE
-		return VPNSVC_ERROR_INVALID_PARAMETER;//LCOV_EXCL_LINE
-	} else if (handle == NULL) {
-		LOGE("handle is a NULL");//LCOV_EXCL_LINE
-		return VPNSVC_ERROR_INVALID_PARAMETER;//LCOV_EXCL_LINE
+		LOGE("iface_name is a NULL"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
+	} else if (_vpn_check_handle_validity(*handle)) {
+		LOGE("Invalid parameter"); //LCOV_EXCL_LINE
+		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
 	vpnsvc_tun_s *tmp_s = NULL;
@@ -324,6 +336,7 @@ EXPORT_API int vpnsvc_init(const char* iface_name, vpnsvc_h *handle)
 			strncpy(tmp_s->name, tmp_name, VPNSVC_VPN_IFACE_NAME_LEN);
 			tmp_s->name[VPNSVC_VPN_IFACE_NAME_LEN-1] = '\0';
 			*handle = tmp_s;
+			vpn_handle_list = g_slist_prepend(vpn_handle_list, *handle);
 			LOGD("handle : %p, handle->fd : %d, handle->index : %d, handle->name : %s",
 				(*handle), ((vpnsvc_tun_s*)*handle)->fd, ((vpnsvc_tun_s*)*handle)->index, ((vpnsvc_tun_s*)*handle)->name);
 		}
@@ -383,6 +396,7 @@ EXPORT_API int vpnsvc_deinit(vpnsvc_h handle)
 
 		/* free allocared handle memory */
 		_vpnsvc_deinit_vpnsvc_tun_s(tun_s);
+		vpn_handle_list = g_slist_remove(vpn_handle_list, handle);
 	}
 
 	return result;

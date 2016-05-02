@@ -1,6 +1,6 @@
 Name:       vpnsvc-pkg
 Summary:    VPN service library in TIZEN C API
-Version:    1.0.13
+Version:    1.0.14
 Release:    1
 Group:      System/Network
 License:    Apache-2.0
@@ -43,12 +43,12 @@ Group:    Development/Libraries
 %description -n capi-vpnsvc-devel
 capi-vpnsvc CAPI devel package
 
-%package -n vpnsvc-test
-Summary:  Vpnsvc test
-Group:    Development/Libraries
+#%package -n vpnsvc_test
+#Summary:  Vpnsvc test
+#Group:    Development/Libraries
 
-%description -n vpnsvc-test
-vpnsvc test package
+#%description -n vpnsvc_test
+#vpnsvc test package
 
 %package -n vpnsvc-daemon
 Summary:  Vpnsvc daemon
@@ -129,13 +129,14 @@ fi
 %manifest framework/capi-vpnsvc.manifest
 %{_libdir}/libcapi-vpnsvc.so.*
 %{_datadir}/license/capi-vpnsvc
+%{_bindir}/vpnsvc_test
 
 %files -n capi-vpnsvc-devel
 %{_includedir}/*.h
 %{_libdir}/pkgconfig/capi-vpnsvc.pc
 %{_libdir}/libcapi-vpnsvc.so
 
-%files -n vpnsvc-test
-%manifest test/vpnsvc-test.manifest
-/usr/sbin/vpnsvc-test
+#%files -n vpnsvc_test
+#%manifest test/vpnsvc-test.manifest
+#%{_bindir}/vpnsvc_test
 
