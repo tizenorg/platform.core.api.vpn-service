@@ -146,12 +146,13 @@ static int add_dns_routes(char* if_name, char** dns_servers, size_t nr_dns)
 	struct sockaddr_in addr;
 	int sk;
 	unsigned int i = 0;
+	char buf[BUF_SIZE_FOR_ERR] = { 0 };
 
 	LOGD("Enter add_routes");
 
 	sk = socket(PF_INET, SOCK_DGRAM | SOCK_CLOEXEC, 0);
 	if (sk < 0) {
-		LOGE("socket failed : %s", strerror(errno));
+		LOGE("socket failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 		return VPNSVC_ERROR_IO_ERROR;
 	}
 
@@ -179,7 +180,7 @@ static int add_dns_routes(char* if_name, char** dns_servers, size_t nr_dns)
 		rt.rt_dev = if_name;
 
 		if (ioctl(sk, SIOCADDRT, &rt) < 0) {
-			LOGE("ioctl SIOCADDRT failed : %s", strerror(errno));
+			LOGE("ioctl SIOCADDRT failed : %s", strerror_r(errno, buf, BUF_SIZE_FOR_ERR));
 			close(sk);
 			return VPNSVC_ERROR_IO_ERROR;
 		}
