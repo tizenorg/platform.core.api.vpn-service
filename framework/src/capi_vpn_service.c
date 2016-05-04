@@ -395,8 +395,8 @@ EXPORT_API int vpnsvc_deinit(vpnsvc_h handle)
 			LOGD("tun fd close success");
 
 		/* free allocared handle memory */
+		vpn_handle_list = g_slist_remove(vpn_handle_list, tun_s);
 		_vpnsvc_deinit_vpnsvc_tun_s(tun_s);
-		vpn_handle_list = g_slist_remove(vpn_handle_list, handle);
 	}
 
 	return result;

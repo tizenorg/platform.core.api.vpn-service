@@ -1,6 +1,6 @@
 Name:       vpnsvc-pkg
 Summary:    VPN service library in TIZEN C API
-Version:    1.0.14
+Version:    1.0.15
 Release:    1
 Group:      System/Network
 License:    Apache-2.0
