@@ -1,6 +1,6 @@
 Name:       vpnsvc-pkg
 Summary:    VPN service library in TIZEN C API
-Version:    1.0.15
+Version:    1.0.16
 Release:    1
 Group:      System/Network
 License:    Apache-2.0
@@ -65,26 +65,13 @@ vpnsvc daemon package
 %setup -q
 
 %build
-%if 0%{?sec_build_binary_debug_enable}
-export CFLAGS="$CFLAGS -DTIZEN_DEBUG_ENABLE"
-export CXXFLAGS="$CXXFLAGS -DTIZEN_DEBUG_ENABLE"
-export FFLAGS="$FFLAGS -DTIZEN_DEBUG_ENABLE"
-%endif
-
-%if 0%{?tizen_build_binary_release_type_eng}
-export CFLAGS="$CFLAGS -DTIZEN_ENGINEER_MODE"
-export CXXFLAGS="$CXXFLAGS -DTIZEN_ENGINEER_MODE"
-export FFLAGS="$FFLAGS -DTIZEN_ENGINEER_MODE"
-%endif
-
 export LDFLAGS+="-Wl,--rpath=%{_libdir}"
 
 MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
 %cmake . -DVERSION=%{version} \
-		-DFULLVER=%{version} \
-		-DMAJORVER=${MAJORVER} \
+	-DFULLVER=%{version} \
+	-DMAJORVER=${MAJORVER} \
         -DCMAKE_BUILD_TYPE=%{?build_type:%build_type}%{!?build_type:RELEASE} \
-		-DTIZEN_ENGINEER_MODE=%{?tizen_build_binary_release_type_eng:1}%{!?tizen_build_binary_release_type_eng:0} \
         -DCMAKE_VERBOSE_MAKEFILE=ON \
         -DLIB_INSTALL_DIR=%{_libdir}
 
