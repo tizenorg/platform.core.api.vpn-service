@@ -17,7 +17,6 @@
  *
  */
 
-
 #include "capi_vpn_service_private.h"
 #include <app.h>
 #include <app_info.h>

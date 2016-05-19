@@ -57,8 +57,10 @@ static char iptables_rule_with_interface_fmt[] = "%s -%c %s%s -%c %s -%c %s/%d -
 /*static char iptables_usage_fmt[] = "%s -L %s%s -n -v -w;";*/
 /* iptables -t nat -A CAPI_VPN_SERVICE_OUTPUT -p udp -d <vpn dns address> --dport 53 -j DNAT --to <vpn defice address:53> */
 static char iptables_nat_chain_name[] = "CAPI_VPN_SERVICE_NAT_OUTPUT";
+#if 0
 static char iptables_nat_register_init_fmt[] = "%s -t nat -N %s -w;" "%s -t nat -F %s -w;" "%s -t nat -I %s -j %s -w;";
 static char iptables_nat_register_rule_fmt[] = "%s -t nat -A %s -p udp -d %s --dport 53 -j DNAT --to %s:53 -w;";
+#endif
 static char iptables_nat_unregister_fmt[] = "%s -t nat -D %s -j %s -w;" "%s -t nat -F %s -w;" "%s -t nat -X %s -w;";
 
 typedef unsigned long int ipv4;	/* Declare variable type for ipv4 net address. */
@@ -268,6 +270,7 @@ static char *connman_default_profile(GDBusConnection *connection)
 	return profile;
 }
 
+#if 0
 static char *connman_get_items(GDBusConnection *connection, char *profile, const char *keystr)
 {
 	GVariant *message = NULL;
@@ -319,6 +322,7 @@ static char *connman_get_items(GDBusConnection *connection, char *profile, const
 
 	return items;
 }
+#endif
 
 static void connman_set_items(GDBusConnection *connection, char *profile,
 							  const char *keystr, char *items)
@@ -348,6 +352,7 @@ static void connman_set_items(GDBusConnection *connection, char *profile,
 
 }
 
+#if 0
 static char *connman_get_nameservers(GDBusConnection *connection, char *profile)
 {
 	return connman_get_items(connection, profile, "Nameservers");
@@ -357,6 +362,7 @@ static char *connman_get_nameservers_conf(GDBusConnection *connection, char *pro
 {
 	return connman_get_items(connection, profile, "Nameservers.Configuration");
 }
+#endif
 
 static void connman_set_nameservers(GDBusConnection *connection, char *profile,
 									char *nameservers)
@@ -365,6 +371,7 @@ static void connman_set_nameservers(GDBusConnection *connection, char *profile,
 							 "Nameservers.Configuration", nameservers);
 }
 
+#if 0
 static char *connman_get_domains(GDBusConnection *connection, char *profile)
 {
 	return connman_get_items(connection, profile, "Domains");
@@ -374,6 +381,7 @@ static char *connman_get_domains_conf(GDBusConnection *connection, char *profile
 {
 	return connman_get_items(connection, profile, "Domains.Configuration");
 }
+#endif
 
 static void connman_set_domains(GDBusConnection *connection, char *profile,
 									char *domains)
@@ -382,6 +390,7 @@ static void connman_set_domains(GDBusConnection *connection, char *profile,
 							 "Domains.Configuration", domains);
 }
 
+#if 0
 static int add_dns_servers(char** dns_servers, size_t nr_dns, size_t total_dns_string_cnt)
 {
 	char *profile = NULL;
@@ -449,6 +458,7 @@ static int add_dns_servers(char** dns_servers, size_t nr_dns, size_t total_dns_s
 	free(profile);
 	return VPNSVC_ERROR_NONE;
 }
+#endif
 
 static int del_dns_servers()
 {
@@ -474,6 +484,7 @@ static int del_dns_servers()
 	return VPNSVC_ERROR_NONE;
 }
 
+#if 0
 static int add_dns_suffix(const char* dns_suffix, size_t dns_suffix_len)
 {
 	char *profile = NULL;
@@ -537,6 +548,7 @@ static int add_dns_suffix(const char* dns_suffix, size_t dns_suffix_len)
 
 	return VPNSVC_ERROR_NONE;
 }
+#endif
 
 static int del_dns_suffix()
 {
@@ -573,6 +585,7 @@ static void iptables_exec(char *cmdline)
 		pclose(fp);
 }
 
+#if 0
 static void dns_nat_register(char **vpn_dns_address, size_t nr_dns, char *vpn_device_address)
 {
 	int size = 0, i;
@@ -592,6 +605,7 @@ static void dns_nat_register(char **vpn_dns_address, size_t nr_dns, char *vpn_de
 	LOGD("iptable dns nat reg cmd : %s", buf);
 	iptables_exec(buf);
 }
+#endif
 
 static void dns_nat_unregister(void)
 {
