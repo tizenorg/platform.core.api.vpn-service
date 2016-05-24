@@ -327,7 +327,7 @@ EXPORT_API int vpnsvc_init(const char* iface_name, vpnsvc_h *handle)
 		if (result != VPNSVC_ERROR_NONE) {
 			LOGE("vpnsvc_init() failed"); //LCOV_EXCL_LINE
 			_vpnsvc_deinit_vpnsvc_tun_s(tmp_s); //LCOV_EXCL_LINE
-			result = VPNSVC_ERROR_IPC_FAILED; //LCOV_EXCL_LINE
+			result = VPNSVC_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
 		} else {
 			LOGD("vpnsvc_init() succeed");
 			tmp_s->fd = iface_fd;	/* client fd must be set */
