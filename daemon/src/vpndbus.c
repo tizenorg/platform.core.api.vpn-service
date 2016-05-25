@@ -235,6 +235,7 @@ void vpnsvc_cleanup_gdbus(void)
 	LOGD("VPN Service Cleanup!");
 
 	g_bus_unown_name(owner_id);
+	g_object_unref(manager_server_vpn);
 
 	return;
 }

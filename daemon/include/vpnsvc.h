@@ -37,6 +37,7 @@ typedef enum _net_vpn_service_privilege_e {
 } net_vpn_service_privilege_e;
 
 void vpnsvc_create_and_init(void);
+void vpnsvc_destroy_deinit(void);
 Vpnsvc *get_vpnsvc_object(void);
 gboolean vpn_service_gdbus_check_privilege(GDBusMethodInvocation *invocation,
 	net_vpn_service_privilege_e _privilege);

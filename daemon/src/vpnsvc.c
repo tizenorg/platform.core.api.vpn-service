@@ -247,6 +247,12 @@ gboolean handle_vpn_up(Vpnsvc *object,
 			total_dns_string_cnt, arg_dns_suffix, arg_mtu);
 done:
 	/* free pointers */
+	for (i = 0; i < arg_nr_routes; i++) {
+		if(routes[i])
+			free(routes[i]);
+	}
+	free(routes);
+
 	if (dns_servers) {
 		for (i = 0; i < arg_nr_dns; i++) {
 			if (dns_servers[i])
@@ -363,6 +369,16 @@ gboolean handle_vpn_block_networks(Vpnsvc *object,
 
 done:
 
+	for (i = 0; i < arg_nr_nets_vpn; ++i) {
+		if (nets_orig[i])
+			free(nets_orig[i]);
+		if (nets_vpn[i])
+			free(nets_vpn[i]);
+	}
+
+	free(nets_vpn);
+	free(nets_orig);
+
 	vpnsvc_complete_vpn_block_networks(object, invocation, result);
 
 	return TRUE;
@@ -441,6 +457,13 @@ void vpnsvc_create_and_init(void)
 	return;
 }
 
+void vpnsvc_destroy_deinit(void)
+{
+	LOGD("Deinit vpn object.");
+
+	if (vpnsvc)
+		g_object_unref(vpnsvc);
+}
 
 gboolean vpn_service_gdbus_check_privilege(GDBusMethodInvocation *invocation, net_vpn_service_privilege_e _privilege)
 {
@@ -505,6 +528,17 @@ gboolean vpn_service_gdbus_check_privilege(GDBusMethodInvocation *invocation, ne
 	ret = cynara_check(p_cynara, client, client_session, user, privilege);
 	if (ret == CYNARA_API_ACCESS_ALLOWED)
 		LOGD("cynara PASS");
+
+	cynara_finish(p_cynara);
+
+	if (client)
+		g_free(client);
+
+	if (user)
+		g_free(user);
+
+	if (client_session)
+		g_free(client_session);
 
 	return (ret == CYNARA_API_ACCESS_ALLOWED) ? TRUE : FALSE;
 }
