@@ -156,17 +156,13 @@ GVariant *_vpnsvc_invoke_dbus_method(GDBusConnection *connection,
 
 	if (reply == NULL) {
 		if (error != NULL) {//LCOV_EXCL_LINE
-			if (error->code == G_DBUS_ERROR_ACCESS_DENIED) {//LCOV_EXCL_LINE
-				LOGE("g_dbus_connection_call_sync() failed"//LCOV_EXCL_LINE
-					"error [%d: %s]", error->code, error->message);
-				*dbus_error = VPNSVC_ERROR_PERMISSION_DENIED;//LCOV_EXCL_LINE
-				g_error_free(error);//LCOV_EXCL_LINE
-			} else {
-				LOGE("g_dbus_connection_call_sync() failed"//LCOV_EXCL_LINE
-						"error [%d: %s]", error->code, error->message);
-				*dbus_error = VPNSVC_ERROR_IO_ERROR;//LCOV_EXCL_LINE
-				g_error_free(error);//LCOV_EXCL_LINE
-			}
+			LOGE("g_dbus_connection_call_sync() failed "//LCOV_EXCL_LINE
+				"error [%d: %s]", error->code, error->message);
+			if (error->code == G_DBUS_ERROR_ACCESS_DENIED) //LCOV_EXCL_LINE
+				*dbus_error = VPNSVC_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
+			else
+				*dbus_error = VPNSVC_ERROR_IO_ERROR; //LCOV_EXCL_LINE
+			g_error_free(error);//LCOV_EXCL_LINE
 		} else {
 			LOGE("g_dbus_connection_call_sync() failed");//LCOV_EXCL_LINE
 			*dbus_error = VPNSVC_ERROR_IPC_FAILED;//LCOV_EXCL_LINE
@@ -226,12 +222,15 @@ GVariant *_vpnsvc_invoke_dbus_method_with_fd(GDBusConnection *connection,
 
 	if (reply == NULL) {
 		if (error != NULL) {//LCOV_EXCL_LINE
-			LOGE("g_dbus_connection_call_sync() failed" //LCOV_EXCL_LINE
+			LOGE("g_dbus_connection_call_with_unix_fd_list_sync() failed " //LCOV_EXCL_LINE
 					"error [%d: %s]", error->code, error->message);
-			*dbus_error = VPNSVC_ERROR_IO_ERROR; //LCOV_EXCL_LINE
+			if (error->code == G_DBUS_ERROR_ACCESS_DENIED) //LCOV_EXCL_LINE
+				*dbus_error = VPNSVC_ERROR_PERMISSION_DENIED; //LCOV_EXCL_LINE
+			else
+				*dbus_error = VPNSVC_ERROR_IO_ERROR; //LCOV_EXCL_LINE
 			g_error_free(error); //LCOV_EXCL_LINE
 		} else {
-			LOGE("g_dbus_connection_call_sync() failed"); //LCOV_EXCL_LINE
+			LOGE("g_dbus_connection_call_with_unix_fd_list_sync() failed"); //LCOV_EXCL_LINE
 			*dbus_error = VPNSVC_ERROR_IPC_FAILED; //LCOV_EXCL_LINE
 		}
 
@@ -314,6 +313,9 @@ EXPORT_API int vpnsvc_init(const char* iface_name, vpnsvc_h *handle)
 							g_variant_new("(su)", iface_name, strlen(iface_name)),
 							iface_fd,
 							&dbus_result);
+
+	if (dbus_result == VPNSVC_ERROR_PERMISSION_DENIED)
+		return VPNSVC_ERROR_PERMISSION_DENIED;
 
 	if (op == NULL) {
 		close(iface_fd); //LCOV_EXCL_LINE
@@ -527,6 +529,9 @@ EXPORT_API int vpnsvc_up(vpnsvc_h handle, const char* local_ip, const char* remo
 								dns_suffix, tun_s->mtu),
 								&dbus_result);
 
+	if (dbus_result == VPNSVC_ERROR_PERMISSION_DENIED)
+		return VPNSVC_ERROR_PERMISSION_DENIED;
+
 	if (op == NULL) {
 		return VPNSVC_ERROR_IPC_FAILED; //LCOV_EXCL_LINE
 	} else {
@@ -575,6 +580,9 @@ EXPORT_API int vpnsvc_down(vpnsvc_h handle)
 								"vpn_down",
 								g_variant_new("(i)", tun_s->index),
 								&dbus_result);
+
+	if (dbus_result == VPNSVC_ERROR_PERMISSION_DENIED)
+		return VPNSVC_ERROR_PERMISSION_DENIED;
 
 	if (op == NULL) {
 		return VPNSVC_ERROR_IPC_FAILED; //LCOV_EXCL_LINE

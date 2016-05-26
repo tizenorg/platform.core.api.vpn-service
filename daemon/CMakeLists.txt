@@ -15,6 +15,7 @@ SET(pc_requires "capi-base-common")
 SET(SRCS
 	src/vpnsvc.c
 	src/vpndbus.c
+	src/vpnerror.c
 	src/vpn_service_daemon.c
 	src/vpn_service_daemon_main.c
 )
