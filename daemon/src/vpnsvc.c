@@ -25,6 +25,7 @@
 
 #include "vpnsvc.h"
 #include "vpndbus.h"
+#include "vpnerror.h"
 #include "vpn_service_daemon.h"
 
 #include "cynara-client.h"
@@ -53,9 +54,8 @@ gboolean handle_vpn_init(Vpnsvc *object,
 	/* check privilege */
 	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE) == false
 		|| vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_INTERNET) == false) {
-		LOGE("permission denied, and finished request.");
-		result = VPNSVC_ERROR_PERMISSION_DENIED;
-		goto done;
+		vpnsvc_error_permission_denied(invocation);
+		return FALSE;
 	}
 
 	vpnsvc_tun_s handle_s;
@@ -80,8 +80,6 @@ gboolean handle_vpn_init(Vpnsvc *object,
 	LOGD("handle_s.fd : %d, handle_s.index : %d, handle_s.name : %s",
 			handle_s.fd, handle_s.index, handle_s.name);
 
-done:
-
 	vpnsvc_complete_vpn_init(object, invocation, result, handle_s.index, handle_s.name);
 
 	return TRUE;
@@ -98,16 +96,14 @@ gboolean handle_vpn_deinit(Vpnsvc *object,
 	/* check privilege */
 	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE) == false
 		|| vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_INTERNET) == false) {
-		LOGE("permission denied, and finished request.");
-		result = VPNSVC_ERROR_PERMISSION_DENIED;
-		goto done;
+		vpnsvc_error_permission_denied(invocation);
+		return FALSE;
 	}
 
 	LOGD("vpn_deinit, %s\n", arg_dev_name);
 
 	result = vpn_daemon_deinit(arg_dev_name);
 
-done:
 	vpnsvc_complete_vpn_deinit(object, invocation, result);
 
 	return TRUE;
@@ -124,9 +120,8 @@ gboolean handle_vpn_protect(Vpnsvc *object,
 	/* check privilege */
 	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE) == false
 		|| vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_INTERNET) == false) {
-		LOGE("permission denied, and finished request.");
-		result = VPNSVC_ERROR_PERMISSION_DENIED;
-		goto done;
+		vpnsvc_error_permission_denied(invocation);
+		return FALSE;
 	}
 
 	int socket;
@@ -146,7 +141,6 @@ gboolean handle_vpn_protect(Vpnsvc *object,
 
 	result = vpn_daemon_protect(socket, arg_dev_name);
 
-done:
 	vpnsvc_complete_vpn_protect(object, invocation, result);
 
 	return TRUE;
@@ -182,9 +176,8 @@ gboolean handle_vpn_up(Vpnsvc *object,
 
 	/* check privilege */
 	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE_ADMIN) == false) {
-		LOGE("permission denied, and finished request.");
-		result = VPNSVC_ERROR_PERMISSION_DENIED;
-		goto done;
+		vpnsvc_error_permission_denied(invocation);
+		return FALSE;
 	}
 
 	LOGD("iface_index : %d", arg_iface_index);
@@ -276,16 +269,13 @@ gboolean handle_vpn_down(Vpnsvc *object,
 
 	/* check privilege */
 	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE_ADMIN) == false) {
-		LOGE("permission denied, and finished request.");
-		result = VPNSVC_ERROR_PERMISSION_DENIED;
-		goto done;
+		vpnsvc_error_permission_denied(invocation);
+		return FALSE;
 	}
 
 	LOGD("vpn_down, %d\n", arg_iface_index);
 
 	result = vpn_daemon_down(arg_iface_index);
-
-done:
 
 	vpnsvc_complete_vpn_down(object, invocation, result);
 
@@ -317,9 +307,8 @@ gboolean handle_vpn_block_networks(Vpnsvc *object,
 	/* check privilege */
 	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE) == false
 		|| vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_INTERNET) == false) {
-		LOGE("permission denied, and finished request.");
-		result = VPNSVC_ERROR_PERMISSION_DENIED;
-		goto done;
+		vpnsvc_error_permission_denied(invocation);
+		return FALSE;
 	}
 
 	LOGD("vpn_block_networks");
@@ -367,8 +356,6 @@ gboolean handle_vpn_block_networks(Vpnsvc *object,
 	/* call function */
 	result = vpn_daemon_block_networks(nets_vpn, prefix_vpn, arg_nr_nets_vpn, nets_orig, prefix_orig, arg_nr_nets_orig);
 
-done:
-
 	for (i = 0; i < arg_nr_nets_vpn; ++i) {
 		if (nets_orig[i])
 			free(nets_orig[i]);
@@ -394,16 +381,14 @@ gboolean handle_vpn_unblock_networks(Vpnsvc *object,
 	/* check privilege */
 	if (vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_VPN_SERVICE) == false
 		|| vpn_service_gdbus_check_privilege(invocation, PRIVILEGE_INTERNET) == false) {
-		LOGE("permission denied, and finished request.");
-		result = VPNSVC_ERROR_PERMISSION_DENIED;
-		goto done;
+		vpnsvc_error_permission_denied(invocation);
+		return FALSE;
 	}
 
 	LOGD("vpn_unblock_networks");
 
 	result = vpn_daemon_unblock_networks();
 
-done:
 	vpnsvc_complete_vpn_unblock_networks(object, invocation, result);
 
 	return TRUE;
