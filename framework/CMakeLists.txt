@@ -25,7 +25,7 @@ FOREACH(flag ${${PACKAGE_NAME}_CFLAGS})
 ENDFOREACH(flag)
 
 # Compiler flags
-SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} -fPIC -Wall -fvisibility=hidden -fprofile-arcs -ftest-coverage")
+SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} -fPIC -Wall -fvisibility=hidden")
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_CFLAGS}")
 SET(CMAKE_C_FLAGS_DEBUG "-O0 -g")
 
