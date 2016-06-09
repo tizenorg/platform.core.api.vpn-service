@@ -10,3 +10,5 @@ RemainAfterExit=yes
 ExecStart=/usr/bin/vpnsvc-daemon
 Restart=always
 RestartSec=0
+CapabilityBoundingSet=~CAP_MAC_ADMIN
+CapabilityBoundingSet=~CAP_MAC_OVERRIDE
