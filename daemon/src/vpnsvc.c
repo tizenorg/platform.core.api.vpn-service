@@ -205,8 +205,7 @@ gboolean handle_vpn_up(Vpnsvc *object,
 			i = 0;
 			while (g_variant_iter_loop(&iter, "{si}", &route_dest, &route_prefix)) {
 				int temp_dest_str_len = strlen(route_dest);
-				routes[i] = malloc((sizeof(char) * temp_dest_str_len)+1);
-				memset(routes[i], 0, sizeof(char) * temp_dest_str_len);
+				routes[i] = g_try_malloc0((sizeof(char) * temp_dest_str_len)+1);
 				strncpy(routes[i], route_dest, temp_dest_str_len);
 				routes[i][temp_dest_str_len] = '\0';
 				prefix[i] = route_prefix;
@@ -222,7 +221,7 @@ gboolean handle_vpn_up(Vpnsvc *object,
 	if (arg_nr_dns > 0) {
 		if (arg_dns_servers != NULL) {
 			GVariant *array = g_variant_get_variant(arg_dns_servers);
-			dns_servers = (char **)malloc(arg_nr_dns*sizeof(char *));
+			dns_servers = (char **)g_try_malloc0(arg_nr_dns*sizeof(char *));
 			if (dns_servers == NULL) {
 				LOGE("malloc failed.");
 				result = VPNSVC_ERROR_OUT_OF_MEMORY;
@@ -232,7 +231,7 @@ gboolean handle_vpn_up(Vpnsvc *object,
 			i = 0;
 			while (g_variant_iter_loop(&iter, "s", &temp_dns_server)) {
 				int temp_dns_str_len = strlen(temp_dns_server);
-				dns_servers[i] = (char *)malloc((temp_dns_str_len+1)*sizeof(char));
+				dns_servers[i] = (char *)g_try_malloc0((temp_dns_str_len + 1) * sizeof(char));
 				strncpy(dns_servers[i], temp_dns_server, strlen(temp_dns_server));
 				dns_servers[i][temp_dns_str_len] = '\0';
 				total_dns_string_cnt += temp_dns_str_len;
@@ -247,12 +246,17 @@ gboolean handle_vpn_up(Vpnsvc *object,
 			total_dns_string_cnt, arg_dns_suffix, arg_mtu);
 done:
 	/* free pointers */
+	for (i = 0; i < arg_nr_routes; i++) {
+		if(routes[i])
+			g_free(routes[i]);
+	}
+
 	if (dns_servers) {
 		for (i = 0; i < arg_nr_dns; i++) {
 			if (dns_servers[i])
-				free(dns_servers[i]);
+				g_free(dns_servers[i]);
 		}
-		free(dns_servers);
+		g_free(dns_servers);
 	}
 
 	vpnsvc_complete_vpn_up(object, invocation, result);
@@ -326,8 +330,7 @@ gboolean handle_vpn_block_networks(Vpnsvc *object,
 			i = 0;
 			while (g_variant_iter_loop(&iter, "{si}", &route_dest, &route_prefix)) {
 				int tmp_route_len = strlen(route_dest);
-				nets_vpn[i] = malloc(sizeof(char) * tmp_route_len + 1);
-				memset(nets_vpn[i], 0, sizeof(char) * tmp_route_len);
+				nets_vpn[i] = g_try_malloc0(sizeof(char) * tmp_route_len + 1);
 				strncpy(nets_vpn[i], route_dest, tmp_route_len);
 				nets_vpn[i][tmp_route_len] = '\0';
 				prefix_vpn[i] = route_prefix;
@@ -346,8 +349,7 @@ gboolean handle_vpn_block_networks(Vpnsvc *object,
 			i = 0;
 			while (g_variant_iter_loop(&iter, "{si}", &route_dest, &route_prefix)) {
 				int tmp_route_len = strlen(route_dest);
-				nets_orig[i] = malloc(sizeof(char) * tmp_route_len + 1);
-				memset(nets_orig[i], 0, sizeof(char) * tmp_route_len);
+				nets_orig[i] = g_try_malloc0(sizeof(char) * tmp_route_len + 1);
 				strncpy(nets_orig[i], route_dest, tmp_route_len);
 				nets_orig[i][tmp_route_len] = '\0';
 				prefix_orig[i] = route_prefix;
@@ -362,6 +364,11 @@ gboolean handle_vpn_block_networks(Vpnsvc *object,
 	result = vpn_daemon_block_networks(nets_vpn, prefix_vpn, arg_nr_nets_vpn, nets_orig, prefix_orig, arg_nr_nets_orig);
 
 done:
+
+	for (i = 0; i < arg_nr_nets_vpn; ++i) {
+		g_free(nets_orig[i]);
+		g_free(nets_vpn[i]);
+	}
 
 	vpnsvc_complete_vpn_block_networks(object, invocation, result);
 
@@ -441,6 +448,13 @@ void vpnsvc_create_and_init(void)
 	return;
 }
 
+void vpnsvc_destroy_deinit(void)
+{
+	LOGD("Deinit vpn object.");
+
+	if (vpnsvc)
+		g_object_unref(vpnsvc);
+}
 
 gboolean vpn_service_gdbus_check_privilege(GDBusMethodInvocation *invocation, net_vpn_service_privilege_e _privilege)
 {
@@ -505,6 +519,12 @@ gboolean vpn_service_gdbus_check_privilege(GDBusMethodInvocation *invocation, ne
 	ret = cynara_check(p_cynara, client, client_session, user, privilege);
 	if (ret == CYNARA_API_ACCESS_ALLOWED)
 		LOGD("cynara PASS");
+
+	cynara_finish(p_cynara);
+
+	g_free(client);
+	g_free(user);
+	g_free(client_session);
 
 	return (ret == CYNARA_API_ACCESS_ALLOWED) ? TRUE : FALSE;
 }

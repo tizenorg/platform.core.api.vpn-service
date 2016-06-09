@@ -62,6 +62,7 @@ int main(void)
 	g_main_loop_run(main_loop);
 
 	vpnsvc_cleanup_gdbus();
+	vpnsvc_destroy_deinit();
 
 	return 0;
 }
