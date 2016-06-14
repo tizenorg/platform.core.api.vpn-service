@@ -28,8 +28,6 @@
 #endif
 #define LOG_TAG "VPNSVC_TEST"
 
-#define TEST_VPN_IF_NAME "vpnsvc_test"
-
 #define TEST_CONSOLE_PRINT(FMT, ARG...) fprintf(stderr, FMT, ##ARG); \
 	fprintf(stderr, "\n")
 #define TEST_CONSOLE_INPUT(BUFFER, LENGTH) \
@@ -68,9 +66,12 @@ static const char *test_print_error(vpnsvc_error_e error)
 
 int test_vpnsvc_init()
 {
-	char *name = TEST_VPN_IF_NAME;
 	int rv = VPNSVC_ERROR_NONE;
 	int int_value;
+	char name[33];
+
+	printf("Input VPN interface name to initialize : ");
+	rv = scanf("%32s", name);
 
 	rv = vpnsvc_init(name, &handle);
 

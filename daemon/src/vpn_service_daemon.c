@@ -964,9 +964,8 @@ int vpn_daemon_up(int iface_index, const char* local_ip, const char* remote_ip,
 		}
 	}
 
-	if (nr_dns > 0) {
+	if (nr_dns > 0)
 		dns_nat_register(dns_servers, nr_dns, local_ip);
-	}
 #endif
 
 	return ret;

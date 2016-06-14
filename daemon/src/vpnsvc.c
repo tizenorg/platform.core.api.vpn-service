@@ -240,7 +240,7 @@ gboolean handle_vpn_up(Vpnsvc *object,
 done:
 	/* free pointers */
 	for (i = 0; i < arg_nr_routes; i++) {
-		if(routes[i])
+		if (routes[i])
 			g_free(routes[i]);
 	}
 
