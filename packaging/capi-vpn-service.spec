@@ -1,14 +1,11 @@
 Name:       vpnsvc-pkg
 Summary:    VPN service library in TIZEN C API
-Version:    1.0.21
+Version:    1.0.22
 Release:    1
 Group:      System/Network
 License:    Apache-2.0
 URL:        N/A
 Source0:    %{name}-%{version}.tar.gz
-Source1:    vpnsvc-daemon.service
-Source2:    org.tizen.vpnsvc.service
-Source3:    dbus-vpnsvc-daemon.conf
 BuildRequires:	cmake
 BuildRequires:	pkgconfig(dlog)
 BuildRequires:  pkgconfig(dbus-glib-1)
@@ -19,14 +16,11 @@ BuildRequires:  pkgconfig(capi-appfw-application)
 BuildRequires:  pkgconfig(capi-appfw-package-manager)
 BuildRequires:  pkgconfig(capi-appfw-app-manager)
 BuildRequires:	pkgconfig(capi-system-info)
-BuildRequires: pkgconfig(cynara-client)
-BuildRequires: pkgconfig(cynara-creds-gdbus)
-BuildRequires: pkgconfig(cynara-session)
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 
 %description
-capi-vpn-service framework, service
+capi-vpn-service
 
 %package -n capi-vpnsvc
 Summary:  VPN service library in TIZEN C API
@@ -49,17 +43,6 @@ capi-vpnsvc CAPI devel package
 
 #%description -n vpnsvc_test
 #vpnsvc test package
-
-%package -n vpnsvc-daemon
-Summary:  Vpnsvc daemon
-Group:    Development/Libraries
-Requires:         systemd
-Requires(preun):  systemd
-Requires(post):   systemd
-Requires(postun): systemd
-
-%description -n vpnsvc-daemon
-vpnsvc daemon package
 
 %prep
 %setup -q
@@ -85,12 +68,6 @@ cp LICENSE %{buildroot}/%{_datadir}/license/capi-vpnsvc
 #cp LICENSE.APLv2 %{buildroot}/usr/share/license/fpasmtztransport
 
 %make_install
-mkdir -p %{buildroot}%{_sysconfdir}/dbus-1/system.d
-install -m 0644 %{SOURCE3} %{buildroot}%{_sysconfdir}/dbus-1/system.d/vpnsvc-daemon.conf
-mkdir -p %{buildroot}%{_libdir}/systemd/system
-install -m 0644 %{SOURCE1} %{buildroot}%{_libdir}/systemd/system/vpnsvc-daemon.service
-mkdir -p %{buildroot}%{_datadir}/dbus-1/system-services
-install -m 0644 %{SOURCE2} %{buildroot}%{_datadir}/dbus-1/system-services/org.tizen.vpnsvc.service
 
 %clean
 rm -rf %{buildroot}
@@ -99,21 +76,9 @@ rm -rf %{buildroot}
 ln -s %{_libdir}/libcapi-vpnsvc.so.0 %{_libdir}/libcapi-vpnsvc.so
 
 %postun
-if [ $1 == 0 ]; then
-    # unistall
-    systemctl daemon-reload
-fi
-
-%files -n vpnsvc-daemon
-%manifest daemon/vpnsvc-daemon.manifest
-%attr(0755,root,root) %{_bindir}/vpnsvc-daemon
-%defattr(-,root,root,-)
-%{_sysconfdir}/dbus-1/system.d/*.conf
-%{_libdir}/systemd/system/vpnsvc-daemon.service
-%{_datadir}/dbus-1/system-services/org.tizen.vpnsvc.service
 
 %files -n capi-vpnsvc
-%manifest framework/capi-vpnsvc.manifest
+%manifest capi-vpnsvc.manifest
 %{_libdir}/libcapi-vpnsvc.so.*
 %{_datadir}/license/capi-vpnsvc
 %{_bindir}/vpnsvc_test

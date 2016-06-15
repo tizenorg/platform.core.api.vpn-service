@@ -263,39 +263,6 @@ EXPORT_API int vpnsvc_init(const char* iface_name, vpnsvc_h *handle)
 	vpnsvc_tun_s *tmp_s = NULL;
 	_vpnsvc_init_vpnsvc_tun_s(&tmp_s);
 
-	op = _vpnsvc_invoke_dbus_method(tmp_s->connection,
-									DBUS_DAEMON_SERVICE_NAME,
-									DBUS_DAEMON_OBJECT_NAME,
-									DBUS_DAEMON_INTERFACE_NAME,
-									DBUS_DAEMON_START_SERVICE_METHOD_NAME,
-									g_variant_new("(su)", VPNSVC_DBUS_SERVICE_NAME, 0),
-									&dbus_result);
-
-	if (dbus_result == VPNSVC_ERROR_PERMISSION_DENIED)
-		return VPNSVC_ERROR_PERMISSION_DENIED;
-
-	if (op == NULL) {
-		_vpnsvc_deinit_vpnsvc_tun_s(tmp_s); //LCOV_EXCL_LINE
-		LOGD("Service [%s] Start Failed!", VPNSVC_DBUS_SERVICE_NAME); //LCOV_EXCL_LINE
-		return VPNSVC_ERROR_IPC_FAILED; //LCOV_EXCL_LINE
-	} else {
-		unsigned int status = 0;
-		g_variant_get(op, "(u)", &status);
-		if (1 == status) {	/* DBUS_START_REPLY_SUCCESS */
-			LOGD("Service [%s] Started Successfully!", VPNSVC_DBUS_SERVICE_NAME);
-		} else if (2 == status) {	/* DBUS_START_REPLY_ALREADY_RUNNING */
-			LOGD("Service [%s] Already Running!", VPNSVC_DBUS_SERVICE_NAME);
-		} else {
-			LOGD("Service [%s] Not Started! Status[%d]", VPNSVC_DBUS_SERVICE_NAME, status); //LCOV_EXCL_LINE
-			g_variant_unref(op); //LCOV_EXCL_LINE
-			op = NULL; //LCOV_EXCL_LINE
-			_vpnsvc_deinit_vpnsvc_tun_s(tmp_s); //LCOV_EXCL_LINE
-			return VPNSVC_ERROR_IO_ERROR; //LCOV_EXCL_LINE
-		}
-		g_variant_unref(op);
-		op = NULL;
-	}
-
 	if ((iface_fd = open("/dev/net/tun", O_RDWR)) < 0) {
 		LOGE("tun device open fail\n"); //LCOV_EXCL_LINE
 		close(iface_fd);//LCOV_EXCL_LINE
@@ -305,10 +272,21 @@ EXPORT_API int vpnsvc_init(const char* iface_name, vpnsvc_h *handle)
 
 	LOGD("client iface_fd : %d", iface_fd);
 
+	op = _vpnsvc_invoke_dbus_method(tmp_s->connection,
+							NETCONFIG_SERVICE_NAME,
+							NETCONFIG_NETWORK_PATH,
+							NETCONFIG_NETWORK_INTERFACE,
+							"CheckInternetPrivilege",
+							NULL,
+							&dbus_result);
+
+	if (dbus_result == VPNSVC_ERROR_PERMISSION_DENIED)
+		return VPNSVC_ERROR_PERMISSION_DENIED;
+
 	op = _vpnsvc_invoke_dbus_method_with_fd(tmp_s->connection,
-							VPNSVC_DBUS_SERVICE_NAME,
-							VPNSVC_DBUS_INTERFACE_OBJ_NAME,
-							VPNSVC_DBUS_INTERFACE_NAME,
+							NETCONFIG_SERVICE_NAME,
+							NETCONFIG_VPNSVC_PATH,
+							NETCONFIG_VPNSVC_INTERFACE_NAME,
 							"vpn_init",
 							g_variant_new("(su)", iface_name, strlen(iface_name)),
 							iface_fd,
@@ -369,9 +347,20 @@ EXPORT_API int vpnsvc_deinit(vpnsvc_h handle)
 
 	if (tun_s->fd > 0) {
 		op = _vpnsvc_invoke_dbus_method(tun_s->connection,
-									VPNSVC_DBUS_SERVICE_NAME,
-									VPNSVC_DBUS_INTERFACE_OBJ_NAME,
-									VPNSVC_DBUS_INTERFACE_NAME,
+									NETCONFIG_SERVICE_NAME,
+									NETCONFIG_NETWORK_PATH,
+									NETCONFIG_NETWORK_INTERFACE,
+									"CheckInternetPrivilege",
+									NULL,
+									&dbus_result);
+
+		if (dbus_result == VPNSVC_ERROR_PERMISSION_DENIED)
+			return VPNSVC_ERROR_PERMISSION_DENIED;
+
+		op = _vpnsvc_invoke_dbus_method(tun_s->connection,
+									NETCONFIG_SERVICE_NAME,
+									NETCONFIG_VPNSVC_PATH,
+									NETCONFIG_VPNSVC_INTERFACE_NAME,
 									"vpn_deinit",
 									g_variant_new("(s)", tun_s->name),
 									&dbus_result);
@@ -425,11 +414,22 @@ EXPORT_API int vpnsvc_protect(vpnsvc_h handle, int socket_fd, const char* iface_
 		return VPNSVC_ERROR_INVALID_PARAMETER; //LCOV_EXCL_LINE
 	}
 
+	op = _vpnsvc_invoke_dbus_method(tun_s->connection,
+						NETCONFIG_SERVICE_NAME,
+						NETCONFIG_NETWORK_PATH,
+						NETCONFIG_NETWORK_INTERFACE,
+						"CheckInternetPrivilege",
+						NULL,
+						&dbus_result);
+
+	if (dbus_result == VPNSVC_ERROR_PERMISSION_DENIED)
+		return VPNSVC_ERROR_PERMISSION_DENIED;
+
 	/* call vpnsvc_protect */
 	op = _vpnsvc_invoke_dbus_method_with_fd(tun_s->connection,
-						VPNSVC_DBUS_SERVICE_NAME,
-						VPNSVC_DBUS_INTERFACE_OBJ_NAME,
-						VPNSVC_DBUS_INTERFACE_NAME,
+						NETCONFIG_SERVICE_NAME,
+						NETCONFIG_VPNSVC_PATH,
+						NETCONFIG_VPNSVC_INTERFACE_NAME,
 						"vpn_protect",
 						g_variant_new("(s)", iface_name),
 						socket_fd,
@@ -520,9 +520,20 @@ EXPORT_API int vpnsvc_up(vpnsvc_h handle, const char* local_ip, const char* remo
 	LOGD("dns_suffix : %s", dns_suffix);
 
 	op = _vpnsvc_invoke_dbus_method(tun_s->connection,
-								VPNSVC_DBUS_SERVICE_NAME,
-								VPNSVC_DBUS_INTERFACE_OBJ_NAME,
-								VPNSVC_DBUS_INTERFACE_NAME,
+								NETCONFIG_SERVICE_NAME,
+								NETCONFIG_NETWORK_PATH,
+								NETCONFIG_NETWORK_INTERFACE,
+								"CheckInternetPrivilege",
+								NULL,
+								&dbus_result);
+
+	if (dbus_result == VPNSVC_ERROR_PERMISSION_DENIED)
+		return VPNSVC_ERROR_PERMISSION_DENIED;
+
+	op = _vpnsvc_invoke_dbus_method(tun_s->connection,
+								NETCONFIG_SERVICE_NAME,
+								NETCONFIG_VPNSVC_PATH,
+								NETCONFIG_VPNSVC_INTERFACE_NAME,
 								"vpn_up",
 								g_variant_new("(issvuvusu)", tun_s->index, local_ip, \
 								remote_ip, route_param, num_routes, dns_param, num_dns_servers, \
@@ -574,9 +585,20 @@ EXPORT_API int vpnsvc_down(vpnsvc_h handle)
 	}
 
 	op = _vpnsvc_invoke_dbus_method(tun_s->connection,
-								VPNSVC_DBUS_SERVICE_NAME,
-								VPNSVC_DBUS_INTERFACE_OBJ_NAME,
-								VPNSVC_DBUS_INTERFACE_NAME,
+								NETCONFIG_SERVICE_NAME,
+								NETCONFIG_NETWORK_PATH,
+								NETCONFIG_NETWORK_INTERFACE,
+								"CheckInternetPrivilege",
+								NULL,
+								&dbus_result);
+
+	if (dbus_result == VPNSVC_ERROR_PERMISSION_DENIED)
+		return VPNSVC_ERROR_PERMISSION_DENIED;
+
+	op = _vpnsvc_invoke_dbus_method(tun_s->connection,
+								NETCONFIG_SERVICE_NAME,
+								NETCONFIG_VPNSVC_PATH,
+								NETCONFIG_VPNSVC_INTERFACE_NAME,
 								"vpn_down",
 								g_variant_new("(i)", tun_s->index),
 								&dbus_result);
@@ -715,9 +737,20 @@ EXPORT_API int vpnsvc_block_networks(vpnsvc_h handle,
 	nets_param_orig = g_variant_builder_end(&nets_builder);
 
 	op = _vpnsvc_invoke_dbus_method(tun_s->connection,
-								VPNSVC_DBUS_SERVICE_NAME,
-								VPNSVC_DBUS_INTERFACE_OBJ_NAME,
-								VPNSVC_DBUS_INTERFACE_NAME,
+								NETCONFIG_SERVICE_NAME,
+								NETCONFIG_NETWORK_PATH,
+								NETCONFIG_NETWORK_INTERFACE,
+								"CheckInternetPrivilege",
+								NULL,
+								&dbus_result);
+
+	if (dbus_result == VPNSVC_ERROR_PERMISSION_DENIED)
+		return VPNSVC_ERROR_PERMISSION_DENIED;
+
+	op = _vpnsvc_invoke_dbus_method(tun_s->connection,
+								NETCONFIG_SERVICE_NAME,
+								NETCONFIG_VPNSVC_PATH,
+								NETCONFIG_VPNSVC_INTERFACE_NAME,
 								"vpn_block_networks",
 								g_variant_new("(vuvu)", nets_param_vpn, num_allow_routes_vpn,
 								nets_param_orig, num_allow_routes_orig),
@@ -765,9 +798,20 @@ EXPORT_API int vpnsvc_unblock_networks(vpnsvc_h handle)
 	}
 
 	op = _vpnsvc_invoke_dbus_method(tun_s->connection,
-									VPNSVC_DBUS_SERVICE_NAME,
-									VPNSVC_DBUS_INTERFACE_OBJ_NAME,
-									VPNSVC_DBUS_INTERFACE_NAME,
+									NETCONFIG_SERVICE_NAME,
+									NETCONFIG_NETWORK_PATH,
+									NETCONFIG_NETWORK_INTERFACE,
+									"CheckInternetPrivilege",
+									NULL,
+									&dbus_result);
+
+	if (dbus_result == VPNSVC_ERROR_PERMISSION_DENIED)
+		return VPNSVC_ERROR_PERMISSION_DENIED;
+
+	op = _vpnsvc_invoke_dbus_method(tun_s->connection,
+									NETCONFIG_SERVICE_NAME,
+									NETCONFIG_VPNSVC_PATH,
+									NETCONFIG_VPNSVC_INTERFACE_NAME,
 									"vpn_unblock_networks",
 									g_variant_new("()"),
 									&dbus_result);

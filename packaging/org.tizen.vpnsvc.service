@@ -1,7 +1,0 @@
-[D-BUS Service]
-Name=org.tizen.vpnsvc
-Exec=/bin/false
-User=root
-Group=root
-SystemdService=vpnsvc-daemon.service
-

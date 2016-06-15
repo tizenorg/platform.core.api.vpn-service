@@ -41,14 +41,11 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#define DBUS_DAEMON_SERVICE_NAME  "org.freedesktop.DBus"
-#define DBUS_DAEMON_OBJECT_NAME  "/org/freedesktop/DBus"
-#define DBUS_DAEMON_INTERFACE_NAME  "org.freedesktop.DBus"
-#define DBUS_DAEMON_START_SERVICE_METHOD_NAME  "StartServiceByName"
-
-#define VPNSVC_DBUS_SERVICE_NAME  "org.tizen.vpnsvc"
-#define VPNSVC_DBUS_INTERFACE_NAME  "org.tizen.vpnsvc"
-#define VPNSVC_DBUS_INTERFACE_OBJ_NAME  "/org/tizen/vpnsvc"
+#define NETCONFIG_SERVICE_NAME			"net.netconfig"
+#define NETCONFIG_VPNSVC_PATH			"/net/netconfig/vpnsvc"
+#define NETCONFIG_VPNSVC_INTERFACE_NAME	"net.netconfig.vpnsvc"
+#define NETCONFIG_NETWORK_PATH			"/net/netconfig/network"
+#define NETCONFIG_NETWORK_INTERFACE		"net.netconfig.network"
 
 #define _MAX_FILE_PATH_LEN 512
 #define _USER_SETTING_DEFAULT_MTU 1500

@@ -1,30 +1,65 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-PROJECT("capi-vpn-service-pkg")
+SET(PACKAGE_NAME capi-vpnsvc)
+SET(LIB_NAME ${PACKAGE_NAME})
+PROJECT(${LIB_NAME})
+SET(PREFIX ${CMAKE_INSTALL_PREFIX})
+SET(EXEC_PREFIX "\${prefix}")
+SET(LIBDIR ${LIB_INSTALL_DIR})
+SET(INCLUDEDIR "\${prefix}/include")
+SET(VERSION 0.1)
 
-############################# cmake packages ##################################
+SET(requires "dlog dbus-1 glib-2.0 gio-2.0 gio-unix-2.0 capi-base-common capi-appfw-application capi-appfw-app-manager capi-system-info")
+SET(pc_requires "capi-base-common")
+
+SET(SRCS
+	src/capi_vpn_service.c
+)
+
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
 
 INCLUDE(FindPkgConfig)
+pkg_check_modules(${PACKAGE_NAME} REQUIRED ${requires})
+FOREACH(flag ${${PACKAGE_NAME}_CFLAGS})
+	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
+ENDFOREACH(flag)
 
-############################# compiler flags ##################################
+# Compiler flags
+SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} -fPIC -Wall -fvisibility=hidden")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_CFLAGS}")
+SET(CMAKE_C_FLAGS_DEBUG "-O0 -g")
 
-SET(CMAKE_INSTALL_PREFIX /usr)
-SET(PREFIX ${CMAKE_INSTALL_PREFIX})
-SET(EXEC_PREFIX ${PREFIX}/bin)
-SET(LIBDIR ${LIB_INSTALL_DIR})
-SET(INCLUDEDIR ${PREFIX}/include)
+ADD_DEFINITIONS("-DPREFIX=\"${PREFIX}\"")
+ADD_DEFINITIONS("-DFACTORYFS=\"$ENV{FACTORYFS}\"")
+ADD_DEFINITIONS("-DDATAFS=\"$ENV{DATADIR}\"")
+ADD_DEFINITIONS("-DSLP_DEBUG")
 
-# If supported for the target machine, emit position-independent code,suitable
-# for dynamic linking and avoiding any limit on the size of the global offset
-# table. This option makes a difference on the m68k, PowerPC and SPARC.
-# (BJ: our ARM too?)
-ADD_DEFINITIONS("-fPIC")
+SET(CMAKE_EXE_LINKER_FLAGS "-Wl,--as-needed -Wl,--rpath="${LIBDIR})
 
-# Set compiler warning flags
+ADD_LIBRARY(${PACKAGE_NAME} SHARED ${SRCS})
+TARGET_LINK_LIBRARIES(${PACKAGE_NAME} ${${PACKAGE_NAME}_LDFLAGS} -lrt -ldl)
 
-# ADD_DEFINITIONS("-Werror")                      # Make all warnings into errors.
-ADD_DEFINITIONS("-Wall")                        # Generate all warnings
+INSTALL(TARGETS ${PACKAGE_NAME} DESTINATION ${LIBDIR})
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/vpn_service.h DESTINATION include)
 
-ADD_SUBDIRECTORY(framework)
-ADD_SUBDIRECTORY(daemon)
+SET_TARGET_PROPERTIES(${PACKAGE_NAME}
+      PROPERTIES
+      VERSION ${FULLVER}
+      SOVERSION ${MAJORVER}
+      CLEAN_DIRECT_OUTPUT 1
+)
+
+
+SET(PC_NAME ${PACKAGE_NAME})
+SET(PC_REQUIRED ${pc_requires})
+SET(PC_CFLAGS -I\${includedir})
+SET(PC_LDFLAGS -l${PACKAGE_NAME})
+
+CONFIGURE_FILE(
+    ${PACKAGE_NAME}.pc.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/${PACKAGE_NAME}.pc
+    @ONLY
+)
+
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${PACKAGE_NAME}.pc DESTINATION ${LIBDIR}/pkgconfig)
+
 ADD_SUBDIRECTORY(test)
-
