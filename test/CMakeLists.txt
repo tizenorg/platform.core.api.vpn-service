@@ -17,8 +17,7 @@ SET(TEST_SRCS
 	vpn_service_test.c)
 
 
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include
-					${CMAKE_SOURCE_DIR}/framework/include)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
 
 INCLUDE(FindPkgConfig)
 pkg_check_modules(${PACKAGE_NAME} REQUIRED ${requires})
