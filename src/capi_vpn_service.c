@@ -265,7 +265,6 @@ EXPORT_API int vpnsvc_init(const char* iface_name, vpnsvc_h *handle)
 
 	if ((iface_fd = open("/dev/net/tun", O_RDWR)) < 0) {
 		LOGE("tun device open fail\n"); //LCOV_EXCL_LINE
-		close(iface_fd);//LCOV_EXCL_LINE
 		_vpnsvc_deinit_vpnsvc_tun_s(tmp_s); //LCOV_EXCL_LINE
 		return VPNSVC_ERROR_IO_ERROR; //LCOV_EXCL_LINE
 	}
